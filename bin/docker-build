@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+set -eu
+
+if [ $# -ne 0 ]; then
+    echo "no arguments allowed for ${0##*/}, given: $*" >&2
+    exit 64
+fi
+
+bindir=$( cd "${0%/*}" && pwd )
+
+"$bindir"/docker-build-smi-adaptor
