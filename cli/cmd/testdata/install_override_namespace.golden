@@ -1,0 +1,85 @@
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: linkerd-smi-2
+  labels:
+    linkerd.io/extension: smi
+  annotations:
+    linkerd.io/inject: enabled
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    linkerd.io/extension: smi
+    component: smi-adaptor
+  name: smi-adaptor
+  namespace: linkerd-smi-2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      linkerd.io/extension: smi
+      component: smi-adaptor
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: enabled
+      labels:
+        linkerd.io/extension: smi
+        component: smi-adaptor
+    spec:
+      containers:
+      - args:
+        - smi-adaptor
+        - -cluster-domain=cluster.local
+        image: cr.l5d.io/linkerd/smi-adaptor:dev-undefined
+        name: smi-adaptor
+        ports:
+        - containerPort: 9999
+          name: admin-http
+      serviceAccountName: smi-adaptor
+---
+###
+### SMI Adaptor Service
+###
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: smi-adaptor
+  labels:
+    linkerd.io/extension: smi
+    component: smi-adaptor
+rules:
+- apiGroups: ["linkerd.io"]
+  resources: ["serviceprofiles"]
+  verbs: ["list", "get", "watch", "create", "update"]
+- apiGroups: ["split.smi-spec.io"]
+  resources: ["trafficsplits"]
+  verbs: ["list", "get", "watch"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: smi-adaptor
+  labels:
+    linkerd.io/extension: smi
+    component: smi-adaptor
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: smi-adaptor
+subjects:
+- kind: ServiceAccount
+  name: smi-adaptor
+  namespace: linkerd-smi-2
+---
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: smi-adaptor
+  namespace: linkerd-smi-2
+  labels:
+    linkerd.io/extension: smi
+    component: smi-adaptor

@@ -91,6 +91,8 @@ func TestController(t *testing.T) {
 	} {
 		tt := tt // pin
 		t.Run(tt.name, func(t *testing.T) {
+
+			ctx := context.Background()
 			k8sAPI, err := k8s.NewFakeAPI()
 			if err != nil {
 				t.Fatalf("NewFakeAPI returned an error: %s", err)
@@ -107,16 +109,20 @@ func TestController(t *testing.T) {
 			)
 
 			for _, ts := range tt.tsUpdates {
-				tsClient.SplitV1alpha1().TrafficSplits(ts.Namespace).Create(context.Background(), ts, metav1.CreateOptions{})
+				tsClient.SplitV1alpha1().TrafficSplits(ts.Namespace).Create(ctx, ts, metav1.CreateOptions{})
 			}
 
 			// Handle TS objects
 			for _, ts := range tt.tsUpdates {
-				controller.syncHandler(context.Background(), getKey(ts))
+				key, err := trafficSplitKeyFunc(ts)
+				if err != nil {
+					t.Fatalf("trafficSplitKeyFunc returned an error: %s", err)
+				}
+				controller.syncHandler(ctx, key)
 			}
 
 			// Match expectedServiceProfiles with the ones in the cluster
-			sps, err := spClient.LinkerdV1alpha2().ServiceProfiles("default").List(context.Background(), metav1.ListOptions{})
+			sps, err := spClient.LinkerdV1alpha2().ServiceProfiles("default").List(ctx, metav1.ListOptions{})
 			if err != nil {
 				t.Fatalf("spClient.List returned an error: %s", err)
 			}
