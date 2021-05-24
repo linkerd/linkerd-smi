@@ -11,7 +11,6 @@ import (
 	"github.com/linkerd/linkerd-smi/pkg/static"
 	"github.com/linkerd/linkerd-smi/pkg/version"
 	"github.com/linkerd/linkerd2/pkg/charts"
-	partials "github.com/linkerd/linkerd2/pkg/charts/static"
 	"github.com/linkerd/linkerd2/pkg/flags"
 	"github.com/linkerd/linkerd2/pkg/healthcheck"
 	api "github.com/linkerd/linkerd2/pkg/public"
@@ -100,25 +99,13 @@ func render(w io.Writer, valuesOverrides map[string]interface{}) error {
 		)
 	}
 
-	var partialFiles []*loader.BufferedFile
-	for _, template := range charts.L5dPartials {
-		partialFiles = append(partialFiles,
-			&loader.BufferedFile{Name: template},
-		)
-	}
-
 	// Load all smi chart files into buffer
 	if err := charts.FilesReader(static.Templates, "linkerd-smi/", files); err != nil {
 		return err
 	}
 
-	// Load all partial chart files into buffer
-	if err := charts.FilesReader(partials.Templates, "", partialFiles); err != nil {
-		return err
-	}
-
 	// Create a Chart obj from the files
-	chart, err := loader.LoadFiles(append(files, partialFiles...))
+	chart, err := loader.LoadFiles(files)
 	if err != nil {
 		return err
 	}
