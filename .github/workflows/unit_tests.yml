@@ -1,0 +1,24 @@
+name: Unit tests
+on:
+  pull_request: {}
+  push:
+    paths-ignore:
+    - '*.md'
+    - '**/*.md'
+    branches:
+    - main
+jobs:
+  go_unit_tests:
+    name: Go unit tests
+    timeout-minutes: 30
+    runs-on: ubuntu-20.04
+    container:
+      image: golang:1.16.2
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+    - name: Go unit tests
+      run: |
+        go get gotest.tools/gotestsum@v0.4.2
+        # TODO: validate bin/protoc-go.sh does not dirty the repo
+        gotestsum -- -cover -race -v -mod=readonly ./...

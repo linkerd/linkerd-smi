@@ -2,7 +2,7 @@ namespace: smi
 
 installNamespace: true
 clusterDomain: cluster.local
-linkerdVersion: &linkerd_smi_version linkerdSMIVersionValue
+linkerdSMIVersion: &linkerd_smi_version linkerdSMIVersionValue
 
 adaptor:
   image: 

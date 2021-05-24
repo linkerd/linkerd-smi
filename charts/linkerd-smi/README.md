@@ -4,8 +4,6 @@ The Linkerd-SMI extension adds SMI adaptor to the Linkerd install
 
 ![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square)
 
-![AppVersion: edge-XX.X.X](https://img.shields.io/badge/AppVersion-edge--XX.X.X-informational?style=flat-square)
-
 **Homepage:** <https://linkerd.io>
 
 ## Quickstart and documentation
@@ -62,20 +60,16 @@ helm install linkerd/linkerd-smi
 
 Kubernetes: `>=1.16.0-0`
 
-| Repository | Name | Version |
-|------------|------|---------|
-| file://../../../charts/partials | partials | 0.1.0 |
-
 ## Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | adaptor.image.name | string | `"cr.l5d.io/linkerd/smi-adaptor"` |  |
 | adaptor.image.pullPolicy | string | `"IfNotPresent"` |  |
-| adaptor.image.version | string | `"linkerdVersionValue"` |  |
+| adaptor.image.version | string | `"linkerdSMIVersionValue"` |  |
 | clusterDomain | string | `"cluster.local"` |  |
 | installNamespace | bool | `true` |  |
-| linkerdVersion | string | `"linkerdVersionValue"` |  |
+| linkerdSMIVersion | string | `"linkerdSMIVersionValue"` |  |
 | namespace | string | `"smi"` |  |
 
 ----------------------------------------------
