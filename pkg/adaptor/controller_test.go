@@ -165,10 +165,6 @@ func newServiceProfileWithSkipAnnotation(name, namespace string, weightedDst map
 	return sp
 }
 
-func getKey(ts *trafficsplit.TrafficSplit) string {
-	return fmt.Sprintf("%s/%s", ts.Namespace, ts.Name)
-}
-
 func TestEquals(t *testing.T) {
 	testCases := []struct {
 		A     *serviceprofile.ServiceProfile

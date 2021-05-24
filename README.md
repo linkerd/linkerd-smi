@@ -4,14 +4,14 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/linkerd/linkerd-smi)](https://goreportcard.com/report/github.com/linkerd/linkerd-smi)
 [![GitHub license](https://img.shields.io/github/license/linkerd/linkerd-smi.svg)](LICENSE)
 
-
-The Linkerd SMI extension helps users to have [SMI](https://smi-spec.io/) functionality in
-[Linkerd](https://linkerd.io)-enabled Kubernetes clusters.
+The Linkerd SMI extension helps users to have [SMI](https://smi-spec.io/) functionality
+in [Linkerd](https://linkerd.io)-enabled Kubernetes clusters.
 
 This repo consists of two components:
-- [`smi-adaptor`](smi-adaptor): Runs on your Kubernetes cluster, and transforms SMI
+
+- `smi-adaptor`: Runs on your Kubernetes cluster, and transforms SMI
   resources into Linkerd native resources.
-- [`cli`](cli): Runs locally or wherever you install the Linkerd CLI.
+- `cli`: Runs locally or wherever you install the Linkerd CLI.
 
 ## License
 
