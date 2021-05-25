@@ -2,7 +2,7 @@
 kind: Namespace
 apiVersion: v1
 metadata:
-  name: smi
+  name: linkerd-smi
   labels:
     linkerd.io/extension: smi
   annotations:
@@ -15,7 +15,7 @@ metadata:
     linkerd.io/extension: smi
     component: smi-adaptor
   name: smi-adaptor
-  namespace: smi
+  namespace: linkerd-smi
 spec:
   replicas: 1
   selector:
@@ -73,13 +73,13 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: smi-adaptor
-  namespace: smi
+  namespace: linkerd-smi
 ---
 kind: ServiceAccount
 apiVersion: v1
 metadata:
   name: smi-adaptor
-  namespace: smi
+  namespace: linkerd-smi
   labels:
     linkerd.io/extension: smi
     component: smi-adaptor

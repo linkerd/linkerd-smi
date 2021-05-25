@@ -1,4 +1,4 @@
-namespace: smi
+namespace: linkerd-smi
 
 installNamespace: true
 clusterDomain: cluster.local
