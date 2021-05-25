@@ -178,36 +178,44 @@ func (c *SMIController) syncHandler(ctx context.Context, key string) error {
 	// Get the Ts resource with this namespace/name
 	ts, err := c.tsclientset.SplitV1alpha1().TrafficSplits(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
-		if errors.IsNotFound(err) {
-			// TS does not exit anymore
-			// Check if there is a relevant SP that was created or updated by SMI Controller
-			// and clean up its dstOverrides
-			log.Infof("trafficsplit/%s is deleted, trying to cleanup the relevant serviceprofile", name)
-			sp, err := c.spclientset.LinkerdV1alpha2().ServiceProfiles(namespace).Get(ctx, c.toFQDN(service, namespace), metav1.GetOptions{})
-			if err != nil {
-				return err
-			}
+		if !errors.IsNotFound(err) {
+			return err
+		}
 
-			// Empty dstOverrides in the SP
-			if ignoreAnnotationPresent(sp) {
-				log.Infof("skipping clean up of serviceprofile/%s as ignore annotation is present", sp.Name)
-				return nil
-			}
+		// TS does not exist anymore
+		// Check if there is a relevant SP that was created or updated by SMI Controller
+		// and clean up its dstOverrides
+		log.Infof("trafficsplit/%s is deleted, trying to cleanup the relevant serviceprofile", name)
+		sp, err := c.spclientset.LinkerdV1alpha2().ServiceProfiles(namespace).Get(ctx, c.toFQDN(service, namespace), metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
 
-			sp.Spec.DstOverrides = nil
-			_, err = c.spclientset.LinkerdV1alpha2().ServiceProfiles(namespace).Update(ctx, sp, metav1.UpdateOptions{})
-			if err != nil {
-				return err
-			}
-			log.Infof("cleaned up `dstOverrides` of serviceprofile/%s", sp.Name)
+		if ignoreAnnotationPresent(sp) {
+			log.Infof("skipping clean up of serviceprofile/%s as ignore annotation is present", sp.Name)
 			return nil
 		}
-		return err
+
+		// Empty dstOverrides in the SP
+		sp.Spec.DstOverrides = nil
+		_, err = c.spclientset.LinkerdV1alpha2().ServiceProfiles(namespace).Update(ctx, sp, metav1.UpdateOptions{})
+		if err != nil {
+			return err
+		}
+		log.Infof("cleaned up `dstOverrides` of serviceprofile/%s", sp.Name)
+		return nil
 	}
 
+	serviceFQDN := c.toFQDN(ts.Spec.Service, ts.Namespace)
 	// Check if the Service Profile is already present
-	sp, err := c.spclientset.LinkerdV1alpha2().ServiceProfiles(ts.Namespace).Get(ctx, c.toFQDN(ts.Spec.Service, ts.Namespace), metav1.GetOptions{})
+	sp, err := c.spclientset.LinkerdV1alpha2().ServiceProfiles(ts.Namespace).Get(ctx, serviceFQDN, metav1.GetOptions{})
 	if err != nil {
+		// Return if its not a not found error
+		if !errors.IsNotFound(err) {
+			log.Errorf("couldn't retrieve serviceprofile/%s: %s", serviceFQDN, err)
+			return err
+		}
+
 		// Create a Service Profile resource as it does not exist
 		sp, err = c.spclientset.LinkerdV1alpha2().ServiceProfiles(ts.Namespace).Create(ctx, c.toServiceProfile(ts), metav1.CreateOptions{})
 		if err != nil {
@@ -216,14 +224,15 @@ func (c *SMIController) syncHandler(ctx context.Context, key string) error {
 		log.Infof("created serviceprofile/%s for trafficsplit/%s", sp.Name, ts.Name)
 	} else {
 		log.Infof("serviceprofile/%s already present", sp.Name)
+		if ignoreAnnotationPresent(sp) {
+			log.Infof("skipping update of serviceprofile/%s as ignore annotation is present", sp.Name)
+			return nil
+		}
+
 		// Check if SP Matches the TS, and update if it not
 		spFromTs := c.toServiceProfile(ts)
 		if !equal(spFromTs, sp) {
 			log.Infof("serviceprofile/%s does not match trafficscplit/%s", sp.Name, ts.Name)
-			if ignoreAnnotationPresent(sp) {
-				log.Infof("skipping updation of serviceprofile/%s as ignore annotation is present", sp.Name)
-				return nil
-			}
 			updateDstOverrides(sp, ts, c.clusterDomain)
 			_, err = c.spclientset.LinkerdV1alpha2().ServiceProfiles(ts.Namespace).Update(ctx, sp, metav1.UpdateOptions{})
 			if err != nil {
