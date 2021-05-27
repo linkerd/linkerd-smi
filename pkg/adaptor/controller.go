@@ -41,7 +41,10 @@ type SMIController struct {
 	spclientset spclientset.Interface
 
 	// workqueue is a rate limited work queue. This is used to queue work to be
-	// processed instead of performing it as soon as a change happens.
+	// processed instead of performing it as soon as a change happens. This
+	// means we can ensure we only process a fixed amount of resources at a
+	// time, and makes it easy to ensure we are never processing the same item
+	// simultaneously in two different workers.
 	workqueue workqueue.RateLimitingInterface
 }
 
@@ -92,6 +95,7 @@ func (c *SMIController) Run(stopCh <-chan struct{}) error {
 
 	log.Info("Starting workers")
 	// Launch workers to process TS resources
+	// TODO: Add a setting to specify n number of workers
 	go wait.Until(c.runWorker, time.Second, stopCh)
 
 	log.Info("Started workers")
