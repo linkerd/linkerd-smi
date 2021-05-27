@@ -8,28 +8,6 @@ on:
     branches:
     - main
 jobs:
-  go_lint:
-    name: Go lint
-    timeout-minutes: 10
-    runs-on: ubuntu-20.04
-    container:
-      image: golang:1.16.4
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
-    - name: Go lint
-      run: bin/lint --verbose
-  go_format:
-    name: Go format
-    timeout-minutes: 10
-    runs-on: ubuntu-20.04
-    container:
-      image: golang:1.16.4
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
-    - name: Format
-      run: bin/fmt
   shellcheck:
     name: shellcheck
     timeout-minutes: 10
