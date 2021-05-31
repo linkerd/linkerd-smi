@@ -13,9 +13,7 @@ import (
 	spinformers "github.com/linkerd/linkerd2/controller/gen/client/informers/externalversions"
 	k8sAPI "github.com/linkerd/linkerd2/controller/k8s"
 	"github.com/linkerd/linkerd2/pkg/admin"
-	"github.com/linkerd/linkerd2/pkg/flags"
 	"github.com/linkerd/linkerd2/pkg/k8s"
-	"github.com/linkerd/linkerd2/pkg/trace"
 	tsclientset "github.com/servicemeshinterface/smi-sdk-go/pkg/gen/client/split/clientset/versioned"
 	tsinformers "github.com/servicemeshinterface/smi-sdk-go/pkg/gen/client/split/informers/externalversions"
 	log "github.com/sirupsen/logrus"
@@ -27,8 +25,6 @@ func main() {
 	kubeConfigPath := cmd.String("kubeconfig", "", "path to kube config")
 	metricsAddr := cmd.String("metrics-addr", ":9995", "address to serve scrapable metrics on")
 	clusterDomain := cmd.String("cluster-domain", "cluster.local", "kubernetes cluster domain")
-
-	traceCollector := flags.AddTraceFlags(cmd)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
@@ -58,12 +54,6 @@ func main() {
 	}
 
 	log.Info("Using cluster domain: ", *clusterDomain)
-
-	if *traceCollector != "" {
-		if err := trace.InitializeTracing("smi-adaptor", *traceCollector); err != nil {
-			log.Warnf("failed to initialize tracing: %s", err)
-		}
-	}
 
 	spClient, err := spclientset.NewForConfig(config)
 	if err != nil {

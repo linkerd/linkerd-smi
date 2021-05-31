@@ -10,7 +10,7 @@ while :
 do
   case $1 in
     -h|--help)
-      echo "Load into KinD/k3d the images for Linkerd's proxy, controller, metrics-api, web, grafana, cli-bin, tap, debug and cni-plugin."
+      echo "Load into KinD/k3d the images for SMI extension."
       echo ""
       echo "Usage:"
       echo "    bin/image-load [--kind] [--k3d] [--archive]"
