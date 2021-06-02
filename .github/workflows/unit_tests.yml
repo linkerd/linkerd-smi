@@ -20,5 +20,4 @@ jobs:
     - name: Go unit tests
       run: |
         go get gotest.tools/gotestsum@v0.4.2
-        # TODO: validate bin/protoc-go.sh does not dirty the repo
         gotestsum -- -cover -race -v -mod=readonly ./...
