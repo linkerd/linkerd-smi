@@ -1,0 +1,37 @@
+run:
+  deadline: 5m
+issues:
+  exclude-use-default: false
+linters:
+  enable:
+  - bodyclose
+  - deadcode
+  - depguard
+  - goconst
+  - golint
+  - gosimple
+  - govet
+  - ineffassign
+  - misspell
+  - nakedret
+  - scopelint
+  - typecheck
+  - unconvert
+  - unparam
+  - unused
+  - varcheck
+  # TODO: enable more linters!
+  # - dupl
+  # - gochecknoglobals
+  # - gochecknoinits
+  # - gocyclo
+  # - gosec
+  # - interfacer
+  # - lll
+  # - maligned
+  # - prealloc
+  # - stylecheck
+  disable:
+  - errcheck
+  - staticcheck
+  - structcheck
