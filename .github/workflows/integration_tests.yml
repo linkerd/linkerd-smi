@@ -81,8 +81,8 @@ jobs:
         name: build-archives
     - name: Load the SMI extension CLI
       run: |
-        mkdir -p $HOME/.linkerd/bin
-        mv build-archives/linkerd-smi "$HOME/.linkerd/bin"
+        mkdir -p $HOME/.linkerd2/bin
+        mv build-archives/linkerd-smi "$HOME/.linkerd2/bin"
     - name: Install the Linkerd CLI
       run : |
         if [ '${{ matrix.version }}' == 'edge' ]; then
