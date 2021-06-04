@@ -47,6 +47,18 @@ func TestTrafficSplitWithSMIAdaptor(t *testing.T) {
 			"'kubectl apply' command failed\n%s", out)
 	}
 
+	// Install Viz extension
+	out, err = TestHelper.LinkerdRun("smi", "install")
+	if err != nil {
+		linkerdtestutil.AnnotatedFatal(t, "'linkerd smi install' command failed", err)
+	}
+
+	out, err = TestHelper.KubectlApply(out, "")
+	if err != nil {
+		linkerdtestutil.AnnotatedFatalf(t, "'kubectl apply' command failed",
+			"'kubectl apply' command failed\n%s", out)
+	}
+
 	// Install SMI extension
 	out, err = TestHelper.LinkerdSMIRun("install")
 	if err != nil {

@@ -79,12 +79,17 @@ jobs:
       uses: actions/download-artifact@18f0f591fbc635562c815484d73b6e8e3980482e
       with:
         name: build-archives
-    - name: Load the SMI extension CLI
+    - name: Create k8s Kind Cluster
+      uses: helm/kind-action@v1.1.0
+    - name: Load the SMI extension CLI and Images
       run: |
         mkdir -p $HOME/.linkerd2/bin
         echo "$HOME/.linkerd2/bin" >> $GITHUB_PATH
         mv build-archives/linkerd-smi "$HOME/.linkerd2/bin"
         chmod +x $HOME/.linkerd2/bin/linkerd-smi
+
+        # load image into the cluster
+        kind load image-archive build-archives/smi-adaptor.tar
     - name: Install the Linkerd CLI
       run : |
         if [ '${{ matrix.version }}' == 'edge' ]; then
@@ -92,8 +97,6 @@ jobs:
         else
           curl -sL https://run.linkerd.io/install | sh
         fi
-    - name: Create k8s Kind Cluster
-      uses: helm/kind-action@v1.1.0
     - name: Run Integration Tests
       run: |
         GO111MODULE=on go test --failfast --mod=readonly "./test" --linkerd="$HOME/.linkerd2/bin/linkerd" --integration-tests
