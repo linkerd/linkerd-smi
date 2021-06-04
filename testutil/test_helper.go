@@ -68,7 +68,7 @@ func NewTestHelper() *TestHelper {
 		k8sContext: *k8sContext,
 	}
 
-	kubernetesHelper, err := testutil.NewKubernetesHelper(*k8sContext, nil)
+	kubernetesHelper, err := testutil.NewKubernetesHelper(*k8sContext, testHelper.RetryFor)
 	if err != nil {
 		exit(1, fmt.Sprintf("error creating kubernetes helper: %s", err.Error()))
 	}
