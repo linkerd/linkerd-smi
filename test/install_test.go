@@ -48,7 +48,7 @@ func TestTrafficSplitWithSMIAdaptor(t *testing.T) {
 	}
 
 	// Install Viz extension
-	out, err = TestHelper.LinkerdRun("smi", "install")
+	out, err = TestHelper.LinkerdRun("viz", "install")
 	if err != nil {
 		linkerdtestutil.AnnotatedFatal(t, "'linkerd smi install' command failed", err)
 	}

@@ -81,6 +81,8 @@ jobs:
         name: build-archives
     - name: Create k8s Kind Cluster
       uses: helm/kind-action@v1.1.0
+      with:
+        cluster_name: kind
     - name: Load the SMI extension CLI and Images
       run: |
         mkdir -p $HOME/.linkerd2/bin
