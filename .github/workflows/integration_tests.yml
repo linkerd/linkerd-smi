@@ -82,7 +82,9 @@ jobs:
     - name: Load the SMI extension CLI
       run: |
         mkdir -p $HOME/.linkerd2/bin
+        echo "$HOME/.linkerd2/bin" >> $GITHUB_PATH
         mv build-archives/linkerd-smi "$HOME/.linkerd2/bin"
+        chmod +x $HOME/.linkerd2/bin/linkerd-smi
     - name: Install the Linkerd CLI
       run : |
         if [ '${{ matrix.version }}' == 'edge' ]; then
@@ -94,5 +96,4 @@ jobs:
       uses: helm/kind-action@v1.1.0
     - name: Run Integration Tests
       run: |
-        echo "$HOME/.linkerd2/bin" >> $GITHUB_PATH
         GO111MODULE=on go test --failfast --mod=readonly "./test" --linkerd="$HOME/.linkerd2/bin/linkerd" --integration-tests
