@@ -59,6 +59,7 @@ func NewCmdSMI() *cobra.Command {
 	smiCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "Turn on debug logging")
 	smiCmd.AddCommand(newCmdInstall())
 	smiCmd.AddCommand(newCmdUninstall())
+	smiCmd.AddCommand(newCmdVersion())
 
 	return smiCmd
 }
