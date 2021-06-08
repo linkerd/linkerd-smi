@@ -35,6 +35,7 @@ spec:
         - smi-adaptor
         - -cluster-domain=cluster.local
         image: cr.l5d.io/linkerd/smi-adaptor:dev-undefined
+        imagePullPolicy: IfNotPresent
         name: smi-adaptor
         ports:
         - containerPort: 9999
