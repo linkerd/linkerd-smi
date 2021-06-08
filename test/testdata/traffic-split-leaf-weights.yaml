@@ -2,7 +2,6 @@ apiVersion: split.smi-spec.io/v1alpha1
 kind: TrafficSplit
 metadata:
     name: backend-traffic-split
-    annotations:
 spec:
     service: backend-svc
     backends:
