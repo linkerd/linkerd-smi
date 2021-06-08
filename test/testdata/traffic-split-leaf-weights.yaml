@@ -3,7 +3,6 @@ kind: TrafficSplit
 metadata:
     name: backend-traffic-split
     annotations:
-      ts.linkerd.io/ignore-at-destination: "true"
 spec:
     service: backend-svc
     backends:
