@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/linkerd/linkerd-smi/testutil"
+	serviceprofile "github.com/linkerd/linkerd2/controller/gen/apis/serviceprofile/v1alpha2"
 	linkerdtestutil "github.com/linkerd/linkerd2/testutil"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 //////////////////////
@@ -29,28 +30,19 @@ func TestMain(m *testing.M) {
 /// TEST EXECUTION ///
 //////////////////////
 
-const (
-	expectedStatColumnCount = 8
-)
+func TestTrafficSplitsConversionWithSMIAdaptor(t *testing.T) {
 
-func TestTrafficSplitWithSMIAdaptor(t *testing.T) {
+	ctx := context.Background()
+	namespace := "linkerd-smi-app"
+	tsName := "backend-traffic-split"
+	spName := fmt.Sprintf("backend-svc.%s.svc.cluster.local", namespace)
+	backend1 := fmt.Sprintf("backend-svc.%s.svc.cluster.local", namespace)
+	backend2 := fmt.Sprintf("failing-svc.%s.svc.cluster.local", namespace)
 
 	// Install Linkerd
 	out, err := TestHelper.LinkerdRun("install")
 	if err != nil {
-		linkerdtestutil.AnnotatedFatal(t, "'linkerd smi install' command failed", err)
-	}
-
-	out, err = TestHelper.KubectlApply(out, "")
-	if err != nil {
-		linkerdtestutil.AnnotatedFatalf(t, "'kubectl apply' command failed",
-			"'kubectl apply' command failed\n%s", out)
-	}
-
-	// Install Viz extension
-	out, err = TestHelper.LinkerdRun("viz", "install")
-	if err != nil {
-		linkerdtestutil.AnnotatedFatal(t, "'linkerd smi install' command failed", err)
+		linkerdtestutil.AnnotatedFatal(t, "'linkerd install' command failed", err)
 	}
 
 	out, err = TestHelper.KubectlApply(out, "")
@@ -71,233 +63,177 @@ func TestTrafficSplitWithSMIAdaptor(t *testing.T) {
 			"'kubectl apply' command failed\n%s", out)
 	}
 
-	version := "v1alpha1-with-smi-adaptor"
-	prefixedNs := version
-	ctx := context.Background()
-
-	// Create the Namespace
-	err = TestHelper.CreateDataPlaneNamespaceIfNotExists(ctx, prefixedNs, map[string]string{})
+	// Create the namespace
+	err = TestHelper.CreateDataPlaneNamespaceIfNotExists(ctx, namespace, map[string]string{})
 	if err != nil {
-		linkerdtestutil.AnnotatedFatal(t, "namespace creation failed", err)
+		linkerdtestutil.AnnotatedFatalf(t, "Creating namespace failed",
+			"Creating namespace failed\n%s", out)
 	}
 
+	// Deploy the Application
 	out, err = TestHelper.LinkerdRun("inject", "--manual", "testdata/application.yaml")
 	if err != nil {
 		linkerdtestutil.AnnotatedFatal(t, "'linkerd inject' command failed", err)
 	}
 
-	out, err = TestHelper.KubectlApply(out, prefixedNs)
+	out, err = TestHelper.KubectlApply(out, namespace)
 	if err != nil {
 		linkerdtestutil.AnnotatedFatalf(t, "'kubectl apply' command failed",
 			"'kubectl apply' command failed\n%s", out)
 	}
 
+	// Apply TrafficSplit
 	TsResourceFile := "testdata/traffic-split-leaf-weights.yaml"
 	TsResource, err := linkerdtestutil.ReadFile(TsResourceFile)
-
 	if err != nil {
 		linkerdtestutil.AnnotatedFatalf(t, "cannot read updated traffic split resource",
 			"cannot read updated traffic split resource: %s, %s", TsResource, err)
 	}
 
-	out, err = TestHelper.KubectlApply(TsResource, prefixedNs)
+	out, err = TestHelper.KubectlApply(TsResource, namespace)
 	if err != nil {
 		linkerdtestutil.AnnotatedFatalf(t, "failed to update traffic split resource",
 			"failed to update traffic split resource: %s\n %s", err, out)
 	}
 
-	// wait for deployments to start
-	for _, deploy := range []string{"backend", "failing", "slow-cooker"} {
-		if err := TestHelper.CheckPods(ctx, prefixedNs, deploy, 1); err != nil {
-			if rce, ok := err.(*linkerdtestutil.RestartCountError); ok {
-				linkerdtestutil.AnnotatedWarn(t, "CheckPods timed-out", rce)
-			} else {
-				linkerdtestutil.AnnotatedError(t, "CheckPods timed-out", err)
-			}
-		}
-	}
-
-	t.Run(fmt.Sprintf("ensure traffic is sent to one backend only for %s", version), func(t *testing.T) {
-		timeout := 40 * time.Second
-		err := TestHelper.RetryFor(timeout, func() error {
-			out, err := TestHelper.LinkerdRun("viz", "stat", "deploy", "--namespace", prefixedNs, "--from", "deploy/slow-cooker", "-t", "30s")
-			if err != nil {
-				return err
-			}
-
-			rows, err := parseStatRows(out, 1)
-			if err != nil {
-				return err
-			}
-
-			expectedRows := []*linkerdtestutil.RowStat{
-				{
-					Name:               "backend",
-					Meshed:             "1/1",
-					Success:            "100.00%",
-					TCPOpenConnections: "1",
-				},
-			}
-
-			if err := validateRowStats(expectedRows, rows); err != nil {
-				return err
-			}
-			return nil
-		})
-
-		if err != nil {
-			linkerdtestutil.AnnotatedFatal(t, fmt.Sprintf("timed-out ensuring traffic is sent to one backend only (%s)", timeout), err)
-		}
-	})
-
-	t.Run(fmt.Sprintf("update traffic split resource with equal weights for %s", version), func(t *testing.T) {
-
-		updatedTsResourceFile := "testdata/updated-traffic-split-leaf-weights.yaml"
-		updatedTsResource, err := linkerdtestutil.ReadFile(updatedTsResourceFile)
-
-		if err != nil {
-			linkerdtestutil.AnnotatedFatalf(t, "cannot read updated traffic split resource",
-				"cannot read updated traffic split resource: %s, %s", updatedTsResource, err)
-		}
-
-		out, err := TestHelper.KubectlApply(updatedTsResource, prefixedNs)
-		if err != nil {
-			linkerdtestutil.AnnotatedFatalf(t, "failed to update traffic split resource",
-				"failed to update traffic split resource: %s\n %s", err, out)
-		}
-	})
-
-	t.Run(fmt.Sprintf("ensure traffic is sent to both backends for %s", version), func(t *testing.T) {
-		timeout := 40 * time.Second
-		err := TestHelper.RetryFor(timeout, func() error {
-
-			out, err := TestHelper.LinkerdRun("viz", "stat", "deploy", "-n", prefixedNs, "--from", "deploy/slow-cooker", "-t", "30s")
-			if err != nil {
-				return err
-			}
-
-			rows, err := parseStatRows(out, 2)
-			if err != nil {
-				return err
-			}
-
-			expectedRows := []*linkerdtestutil.RowStat{
-				{
-					Name:               "backend",
-					Meshed:             "1/1",
-					Success:            "100.00%",
-					TCPOpenConnections: "1",
-				},
-				{
-					Name:               "failing",
-					Meshed:             "1/1",
-					Success:            "0.00%",
-					TCPOpenConnections: "1",
-				},
-			}
-
-			if err := validateRowStats(expectedRows, rows); err != nil {
-				return err
-			}
-			return nil
-		})
-
-		if err != nil {
-			linkerdtestutil.AnnotatedFatal(t, fmt.Sprintf("timed-out ensuring traffic is sent to both backends (%s)", timeout), err)
-		}
-	})
-}
-
-func validateRowStats(expectedRowStats, actualRowStats []*linkerdtestutil.RowStat) error {
-
-	if len(expectedRowStats) != len(actualRowStats) {
-		return fmt.Errorf("Expected number of rows to be %d, but found %d", len(expectedRowStats), len(actualRowStats))
-	}
-
-	for i := 0; i < len(expectedRowStats); i++ {
-		err := compareRowStat(expectedRowStats[i], actualRowStats[i])
+	// Get the resultant ServiceProfile
+	var sp *serviceprofile.ServiceProfile
+	err = TestHelper.RetryFor(time.Minute, func() error {
+		sp, err = TestHelper.GetServiceProfile(ctx, namespace, spName)
 		if err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-func compareRowStat(expectedRow, actualRow *linkerdtestutil.RowStat) error {
-
-	if actualRow.Name != expectedRow.Name {
-		return fmt.Errorf("Expected name to be '%s', got '%s'",
-			expectedRow.Name, actualRow.Name)
-	}
-
-	if actualRow.Meshed != expectedRow.Meshed {
-		return fmt.Errorf("Expected meshed to be '%s', got '%s'",
-			expectedRow.Meshed, actualRow.Meshed)
-	}
-
-	if !strings.HasSuffix(actualRow.Rps, "rps") {
-		return fmt.Errorf("Unexpected rps for [%s], got [%s]",
-			actualRow.Name, actualRow.Rps)
-	}
-
-	if !strings.HasSuffix(actualRow.P50Latency, "ms") {
-		return fmt.Errorf("Unexpected p50 latency for [%s], got [%s]",
-			actualRow.Name, actualRow.P50Latency)
-	}
-
-	if !strings.HasSuffix(actualRow.P95Latency, "ms") {
-		return fmt.Errorf("Unexpected p95 latency for [%s], got [%s]",
-			actualRow.Name, actualRow.P95Latency)
-	}
-
-	if !strings.HasSuffix(actualRow.P99Latency, "ms") {
-		return fmt.Errorf("Unexpected p99 latency for [%s], got [%s]",
-			actualRow.Name, actualRow.P99Latency)
-	}
-
-	if actualRow.Success != expectedRow.Success {
-		return fmt.Errorf("Expected success to be '%s', got '%s'",
-			expectedRow.Success, actualRow.Success)
-	}
-
-	if actualRow.TCPOpenConnections != expectedRow.TCPOpenConnections {
-		return fmt.Errorf("Expected tcp to be '%s', got '%s'",
-			expectedRow.TCPOpenConnections, actualRow.TCPOpenConnections)
-	}
-
-	return nil
-}
-
-func parseStatRows(out string, expectedRowCount int) ([]*linkerdtestutil.RowStat, error) {
-	rows, err := linkerdtestutil.CheckRowCount(out, expectedRowCount)
+		return nil
+	})
 	if err != nil {
-		return nil, err
+		linkerdtestutil.AnnotatedFatalf(t, "failed to retrieve serviceprofile resource",
+			"failed to retrieve serviceprofile resource: %s\n %s", err, out)
 	}
 
-	var statRows []*linkerdtestutil.RowStat
+	// Check if the SP has relevant values
+	err = checkIfServiceProfileMatches(sp, spName, namespace, []serviceprofile.WeightedDst{
+		{
+			Authority: backend1,
+			Weight:    resource.MustParse("500m"),
+		},
+		{
+			Authority: backend2,
+			Weight:    resource.MustParse("0m"),
+		},
+	})
+	if err != nil {
+		linkerdtestutil.AnnotatedFatalf(t, "failed to match serviceprofile resource",
+			"failed to match serviceprofile resource: %s", err)
+	}
 
-	for _, row := range rows {
-		fields := strings.Fields(row)
+	// Update the TrafficSplit
+	TsResourceFile = "testdata/updated-traffic-split-leaf-weights.yaml"
+	TsResource, err = linkerdtestutil.ReadFile(TsResourceFile)
+	if err != nil {
+		linkerdtestutil.AnnotatedFatalf(t, "cannot read updated traffic split resource",
+			"cannot read updated traffic split resource: %s, %s", TsResource, err)
+	}
 
-		if len(fields) != expectedStatColumnCount {
-			return nil, fmt.Errorf(
-				"Expected [%d] columns in stat output, got [%d]; full output:\n%s",
-				expectedStatColumnCount, len(fields), row)
+	out, err = TestHelper.KubectlApply(TsResource, namespace)
+	if err != nil {
+		linkerdtestutil.AnnotatedFatalf(t, "failed to update traffic split resource",
+			"failed to update traffic split resource: %s\n %s", err, out)
+	}
+
+	// Wait for the Controller to sync up the changes
+	time.Sleep(10 * time.Second)
+
+	// Check the resultant ServiceProfile
+	err = TestHelper.RetryFor(time.Minute, func() error {
+		sp, err = TestHelper.GetServiceProfile(ctx, namespace, spName)
+		if err != nil {
+			return err
 		}
+		return nil
+	})
+	if err != nil {
+		linkerdtestutil.AnnotatedFatalf(t, "failed to retrieve serviceprofile resource",
+			"failed to retrieve serviceprofile resource: %s\n %s", err, out)
+	}
 
-		row := &linkerdtestutil.RowStat{
-			Name:               fields[0],
-			Meshed:             fields[1],
-			Success:            fields[2],
-			Rps:                fields[3],
-			P50Latency:         fields[4],
-			P95Latency:         fields[5],
-			P99Latency:         fields[6],
-			TCPOpenConnections: fields[7],
+	// Check if the SP has relevant values
+	err = checkIfServiceProfileMatches(sp, spName, namespace, []serviceprofile.WeightedDst{
+		{
+			Authority: backend1,
+			Weight:    resource.MustParse("500m"),
+		},
+		{
+			Authority: backend2,
+			Weight:    resource.MustParse("500m"),
+		},
+	})
+	if err != nil {
+		linkerdtestutil.AnnotatedFatalf(t, "failed to match serviceprofile resource",
+			"failed to match serviceprofile resource: %s", err)
+	}
+
+	// Delete the TrafficSplit
+	out, err = TestHelper.Kubectl("", "delete", fmt.Sprintf("--namespace=%s", namespace), fmt.Sprintf("trafficsplit/%s", tsName))
+	if err != nil {
+		linkerdtestutil.AnnotatedFatalf(t, "'kubectl delete' command failed",
+			"'kubectl delete' command failed\n%s", out)
+	}
+
+	// Wait for the Controller to sync up the changes
+	time.Sleep(10 * time.Second)
+
+	// Check the resultant ServiceProfile
+	err = TestHelper.RetryFor(time.Minute, func() error {
+		sp, err = TestHelper.GetServiceProfile(ctx, namespace, spName)
+		if err != nil {
+			return err
 		}
+		return nil
+	})
+	if err != nil {
+		linkerdtestutil.AnnotatedFatalf(t, "failed to retrieve serviceprofile resource",
+			"failed to retrieve serviceprofile resource: %s\n %s", err, out)
+	}
 
-		statRows = append(statRows, row)
+	// Check if the SP has empty values
+	err = checkIfServiceProfileMatches(sp, spName, namespace, []serviceprofile.WeightedDst{})
+	if err != nil {
+		linkerdtestutil.AnnotatedFatalf(t, "failed to match serviceprofile resource",
+			"failed to match serviceprofile resource: %s", err)
+	}
+}
+
+func checkIfServiceProfileMatches(sp *serviceprofile.ServiceProfile, name, namespace string, weightedDsts []serviceprofile.WeightedDst) error {
+	if sp.Name != name {
+		return fmt.Errorf("Expected serviceprofile.name to be %s but got %s", name, sp.Name)
+	}
+
+	if sp.Namespace != namespace {
+		return fmt.Errorf("Expected serviceprofile.namespace to be %s but got %s", namespace, sp.Namespace)
 
 	}
-	return statRows, nil
+
+	if len(sp.Spec.DstOverrides) != len(weightedDsts) {
+		return fmt.Errorf("Expected number of dstoverrides to be %d but got %d", len(weightedDsts), len(sp.Spec.DstOverrides))
+	}
+
+	dstOverrides := make(map[string]string)
+	for _, dstA := range sp.Spec.DstOverrides {
+		dstOverrides[dstA.Authority] = dstA.Weight.String()
+	}
+
+	// Check if all the authorties exist
+	// in dstOverrides with the same weight
+	for _, dst := range weightedDsts {
+		weight, ok := dstOverrides[dst.Authority]
+		if !ok {
+			return fmt.Errorf("Expected service %s to be present in dstOverrides", dst.Authority)
+		}
+
+		if weight != dst.Weight.String() {
+			return fmt.Errorf("Expected weight to be %s for service %s, but got %s", weight, dst.Authority, dst.Weight.String())
+		}
+	}
+
+	return nil
 }
