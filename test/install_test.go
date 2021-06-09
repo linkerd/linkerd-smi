@@ -51,6 +51,15 @@ func TestTrafficSplitsConversionWithSMIAdaptor(t *testing.T) {
 			"'kubectl apply' command failed\n%s", out)
 	}
 
+	checkCmd := []string{"check", "--wait=0"}
+	err = TestHelper.RetryFor(time.Minute, func() error {
+		out, err := TestHelper.LinkerdRun(checkCmd...)
+		if err != nil {
+			return fmt.Errorf("'linkerd check' command failed\n%s\n%s", err, out)
+		}
+		return nil
+	})
+
 	// Install SMI extension
 	out, err = TestHelper.LinkerdSMIRun("install")
 	if err != nil {
