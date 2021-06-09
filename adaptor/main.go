@@ -37,6 +37,7 @@ func main() {
 		close(done)
 	}()
 
+	log.Info("Using cluster domain: ", *clusterDomain)
 	ctx := context.Background()
 	config, err := k8s.GetConfig(*kubeConfigPath, "")
 	if err != nil {
@@ -53,8 +54,7 @@ func main() {
 		log.Fatalf("Failed to initialize K8s API: %s", err)
 	}
 
-	log.Info("Using cluster domain: ", *clusterDomain)
-
+	// Create SP and TS clientsets
 	spClient, err := spclientset.NewForConfig(config)
 	if err != nil {
 		log.Fatalf("Error building example clientset: %s", err.Error())
@@ -76,13 +76,16 @@ func main() {
 		tsInformerFactory.Split().V1alpha1().TrafficSplits(),
 	)
 
+	// Start the Admin Server
+	go admin.StartServer(*metricsAddr)
+
 	spInformerFactory.Start(done)
 	tsInformerFactory.Start(done)
 
+	// Run the controller until a shutdown signal is recieved
 	if err = controller.Run(done); err != nil {
 		log.Fatalf("Error running controller: %s", err.Error())
 	}
-	go admin.StartServer(*metricsAddr)
 
 	log.Info("Shutting down")
 }
