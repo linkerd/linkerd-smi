@@ -100,10 +100,7 @@ func TestTrafficSplitsConversionWithSMIAdaptor(t *testing.T) {
 	var sp *serviceprofile.ServiceProfile
 	err = TestHelper.RetryFor(time.Minute, func() error {
 		sp, err = TestHelper.GetServiceProfile(ctx, namespace, spName)
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	})
 	if err != nil {
 		linkerdtestutil.AnnotatedFatalf(t, "failed to retrieve serviceprofile resource",
@@ -146,10 +143,7 @@ func TestTrafficSplitsConversionWithSMIAdaptor(t *testing.T) {
 	// Check the resultant ServiceProfile
 	err = TestHelper.RetryFor(time.Minute, func() error {
 		sp, err = TestHelper.GetServiceProfile(ctx, namespace, spName)
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	})
 	if err != nil {
 		linkerdtestutil.AnnotatedFatalf(t, "failed to retrieve serviceprofile resource",
@@ -185,10 +179,7 @@ func TestTrafficSplitsConversionWithSMIAdaptor(t *testing.T) {
 	// Check the resultant ServiceProfile
 	err = TestHelper.RetryFor(time.Minute, func() error {
 		sp, err = TestHelper.GetServiceProfile(ctx, namespace, spName)
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	})
 	if err != nil {
 		linkerdtestutil.AnnotatedFatalf(t, "failed to retrieve serviceprofile resource",
