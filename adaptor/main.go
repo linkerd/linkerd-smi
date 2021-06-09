@@ -82,7 +82,7 @@ func main() {
 	spInformerFactory.Start(done)
 	tsInformerFactory.Start(done)
 
-	// Run the controller until a shutdown signal is recieved
+	// Run the controller until a shutdown signal is received
 	if err = controller.Run(done); err != nil {
 		log.Fatalf("Error running controller: %s", err.Error())
 	}
