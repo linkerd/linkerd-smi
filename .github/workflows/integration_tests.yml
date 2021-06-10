@@ -63,7 +63,7 @@ jobs:
     timeout-minutes: 60
     strategy:
       matrix:
-        version: [stable, edge]
+        version: [ edge]
     name: Integration tests (${{ matrix.version }})
     steps:
     - name: Checkout code
