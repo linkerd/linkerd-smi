@@ -103,12 +103,9 @@ func TestTrafficSplitsConversionWithSMIAdaptor(t *testing.T) {
 			"failed to update traffic split resource: %s\n %s", err, out)
 	}
 
-	// Wait for the Controller to sync up the changes
-	time.Sleep(10 * time.Second)
-
 	// Get the resultant ServiceProfile
 	var sp *serviceprofile.ServiceProfile
-	err = TestHelper.RetryFor(time.Minute, func() error {
+	err = TestHelper.RetryFor(2*time.Minute, func() error {
 		sp, err = TestHelper.GetServiceProfile(ctx, namespace, spName)
 		return err
 	})
