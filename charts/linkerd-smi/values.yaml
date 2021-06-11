@@ -5,7 +5,7 @@ clusterDomain: cluster.local
 linkerdSMIVersion: &linkerd_smi_version linkerdSMIVersionValue
 
 adaptor:
-  image: 
+  image:
     name: cr.l5d.io/linkerd/smi-adaptor
     version: *linkerd_smi_version
     pullPolicy: IfNotPresent

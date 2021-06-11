@@ -193,6 +193,10 @@ func (c *SMIController) syncHandler(ctx context.Context, key string) error {
 		log.Infof("trafficsplit/%s is deleted, trying to cleanup the relevant serviceprofile", name)
 		sp, err := c.spclientset.LinkerdV1alpha2().ServiceProfiles(namespace).Get(ctx, c.toFQDN(service, namespace), metav1.GetOptions{})
 		if err != nil {
+			// Return nil if not found, as no need to clean up
+			if errors.IsNotFound(err) {
+				return nil
+			}
 			return err
 		}
 
