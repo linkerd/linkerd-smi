@@ -70,6 +70,13 @@ func TestTrafficSplitsConversionWithSMIAdaptor(t *testing.T) {
 			"'kubectl apply' command failed\n%s", out)
 	}
 
+	o, err = TestHelper.Kubectl("", "--namespace=linkerd-smi", "rollout", "status", "--timeout=60m", "deploy/smi-adaptor")
+	if err != nil {
+		linkerdtestutil.AnnotatedFatalf(t,
+			"failed to wait rollout of deploy/smi-adaptor",
+			"failed to wait for rollout of deploy/smi-adaptor: %s: %s", err, o)
+	}
+
 	// Create the namespace
 	err = TestHelper.CreateDataPlaneNamespaceIfNotExists(ctx, namespace, map[string]string{})
 	if err != nil {
