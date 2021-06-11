@@ -48,7 +48,7 @@ type SMIController struct {
 	workqueue workqueue.RateLimitingInterface
 }
 
-// NewController returns a new sample controller
+// NewController returns a new SMI controller
 func NewController(
 	kubeclientset kubernetes.Interface,
 	clusterDomain string,
@@ -182,6 +182,7 @@ func (c *SMIController) syncHandler(ctx context.Context, key string) error {
 	// Get the Ts resource with this namespace/name
 	ts, err := c.tsclientset.SplitV1alpha1().TrafficSplits(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
+		// Return if its not a not found error
 		if !errors.IsNotFound(err) {
 			return err
 		}
@@ -324,15 +325,13 @@ func splitTrafficSplitKey(key string) (namespace, name, service string, err erro
 // updateDstOverrides updates the dstOverrides of the given serviceprofile
 // to match that of the trafficsplit
 func updateDstOverrides(sp *serviceprofile.ServiceProfile, ts *trafficsplit.TrafficSplit, clusterDomain string) {
-	sp.Spec.DstOverrides = []*serviceprofile.WeightedDst{}
-	for _, backend := range ts.Spec.Backends {
-		weightedDst := &serviceprofile.WeightedDst{
+	sp.Spec.DstOverrides = make([]*serviceprofile.WeightedDst, len(ts.Spec.Backends))
+	for i, backend := range ts.Spec.Backends {
+		sp.Spec.DstOverrides[i] = &serviceprofile.WeightedDst{
 			Authority: fqdn(backend.Service, ts.Namespace, clusterDomain),
 			Weight:    *backend.Weight,
 		}
-		sp.Spec.DstOverrides = append(sp.Spec.DstOverrides, weightedDst)
 	}
-
 }
 
 // toServiceProfile converts the given TrafficSplit into the relevant ServiceProfile resource
