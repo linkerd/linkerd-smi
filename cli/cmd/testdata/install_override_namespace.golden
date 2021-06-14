@@ -55,7 +55,7 @@ metadata:
 rules:
 - apiGroups: ["linkerd.io"]
   resources: ["serviceprofiles"]
-  verbs: ["list", "get", "watch", "create", "update"]
+  verbs: ["list", "get", "create", "update"]
 - apiGroups: ["split.smi-spec.io"]
   resources: ["trafficsplits"]
   verbs: ["list", "get", "watch"]
