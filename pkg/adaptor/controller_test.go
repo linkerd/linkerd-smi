@@ -114,11 +114,7 @@ func TestController(t *testing.T) {
 
 			// Handle TS objects
 			for _, ts := range tt.tsUpdates {
-				key, err := trafficSplitKeyFunc(ts)
-				if err != nil {
-					t.Fatalf("trafficSplitKeyFunc returned an error: %s", err)
-				}
-				controller.syncHandler(ctx, key)
+				controller.syncHandler(ctx, trafficSplitKeyFunc(*ts))
 			}
 
 			// Match expectedServiceProfiles with the ones in the cluster

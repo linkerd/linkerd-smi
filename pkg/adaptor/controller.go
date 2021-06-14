@@ -67,11 +67,30 @@ func NewController(
 
 	// Set up an event handler for when Ts resources change
 	tsInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: controller.enqueueTS,
-		UpdateFunc: func(old, new interface{}) {
-			controller.enqueueTS(new)
+		AddFunc: func(obj interface{}) {
+			ts, ok := obj.(*trafficsplit.TrafficSplit)
+			if !ok {
+				log.Errorf("couldn't convert the object to a trafficsplit")
+				return
+			}
+			controller.enqueueTS(*ts)
 		},
-		DeleteFunc: controller.enqueueTS,
+		UpdateFunc: func(old, new interface{}) {
+			ts, ok := new.(*trafficsplit.TrafficSplit)
+			if !ok {
+				log.Errorf("couldn't convert the object to a trafficsplit")
+				return
+			}
+			controller.enqueueTS(*ts)
+		},
+		DeleteFunc: func(obj interface{}) {
+			ts, ok := obj.(*trafficsplit.TrafficSplit)
+			if !ok {
+				log.Errorf("couldn't convert the object to a trafficsplit")
+				return
+			}
+			controller.enqueueTS(*ts)
+		},
 	})
 
 	return controller
@@ -296,25 +315,15 @@ func equal(spA *serviceprofile.ServiceProfile, spB *serviceprofile.ServiceProfil
 // enqueueTS takes a Ts resource and converts it into a key
 // string which is then put onto the work queue. This method should *not* be
 // passed resources of any type other than TS.
-func (c *SMIController) enqueueTS(obj interface{}) {
-	var key string
-	var err error
-	if key, err = trafficSplitKeyFunc(obj); err != nil {
-		log.Error(err)
-		return
-	}
+func (c *SMIController) enqueueTS(ts trafficsplit.TrafficSplit) {
+	key := trafficSplitKeyFunc(ts)
 	c.workqueue.Add(key)
 }
 
 // trafficSplitKeyFunc takes a TS, and gives back a
 // namespace/name/service key string
-func trafficSplitKeyFunc(obj interface{}) (string, error) {
-	ts, ok := obj.(*trafficsplit.TrafficSplit)
-	if !ok {
-		return "", fmt.Errorf("couldn't convert the object in the queue to a trafficsplit")
-	}
-
-	return ts.Namespace + "/" + ts.Name + "/" + ts.Spec.Service, nil
+func trafficSplitKeyFunc(ts trafficsplit.TrafficSplit) string {
+	return ts.Namespace + "/" + ts.Name + "/" + ts.Spec.Service
 }
 
 func splitTrafficSplitKey(key string) (namespace, name, service string, err error) {
