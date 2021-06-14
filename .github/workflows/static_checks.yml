@@ -48,11 +48,3 @@ jobs:
       uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
     - name: Markdown lint
       run: bin/markdownlint ./**/*.md --ignore node_modules/
-  chart_docs_diff:
-    name: Chart readme diff check
-    runs-on: ubuntu-20.04
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
-    - name: Check docs for diff
-      run: bin/helm-docs-diff
