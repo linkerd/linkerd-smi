@@ -10,7 +10,6 @@ import (
 
 	"github.com/linkerd/linkerd-smi/pkg/adaptor"
 	spclientset "github.com/linkerd/linkerd2/controller/gen/client/clientset/versioned"
-	spinformers "github.com/linkerd/linkerd2/controller/gen/client/informers/externalversions"
 	k8sAPI "github.com/linkerd/linkerd2/controller/k8s"
 	"github.com/linkerd/linkerd2/pkg/admin"
 	"github.com/linkerd/linkerd2/pkg/k8s"
@@ -65,7 +64,6 @@ func main() {
 		log.Fatalf("Error building example clientset: %s", err.Error())
 	}
 
-	spInformerFactory := spinformers.NewSharedInformerFactory(spClient, time.Second*30)
 	tsInformerFactory := tsinformers.NewSharedInformerFactory(tsClient, time.Second*30)
 
 	controller := adaptor.NewController(
@@ -79,7 +77,6 @@ func main() {
 	// Start the Admin Server
 	go admin.StartServer(*metricsAddr)
 
-	spInformerFactory.Start(done)
 	tsInformerFactory.Start(done)
 
 	// Run the controller until a shutdown signal is received
