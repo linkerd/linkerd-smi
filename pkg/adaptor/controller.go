@@ -245,7 +245,8 @@ func (c *SMIController) syncHandler(ctx context.Context, key string) error {
 		}
 
 		// Create a Service Profile resource as it does not exist
-		sp, err = c.spclientset.LinkerdV1alpha2().ServiceProfiles(ts.Namespace).Create(ctx, c.toServiceProfile(ts), metav1.CreateOptions{})
+		var sp serviceprofile.ServiceProfile
+		_, err = c.spclientset.LinkerdV1alpha2().ServiceProfiles(ts.Namespace).Create(ctx, c.toServiceProfile(sp, ts), metav1.CreateOptions{})
 		if err != nil {
 			return err
 		}
@@ -257,17 +258,13 @@ func (c *SMIController) syncHandler(ctx context.Context, key string) error {
 			return nil
 		}
 
-		// Check if SP Matches the TS, and update if it not
-		spFromTs := c.toServiceProfile(ts)
-		if !equal(spFromTs, sp) {
-			log.Infof("serviceprofile/%s does not match trafficscplit/%s", sp.Name, ts.Name)
-			updateDstOverrides(sp, ts, c.clusterDomain)
-			_, err = c.spclientset.LinkerdV1alpha2().ServiceProfiles(ts.Namespace).Update(ctx, sp, metav1.UpdateOptions{})
-			if err != nil {
-				return err
-			}
-			log.Infof("updated serviceprofile/%s as it's not equivalent to trafficsplit/%s", sp.Name, ts.Name)
+		// Update SP to match that of TS
+		sp := c.toServiceProfile(*sp, ts)
+		_, err = c.spclientset.LinkerdV1alpha2().ServiceProfiles(ts.Namespace).Update(ctx, sp, metav1.UpdateOptions{})
+		if err != nil {
+			return err
 		}
+		log.Infof("updated serviceprofile/%s", sp.Name)
 	}
 
 	return nil
@@ -335,37 +332,27 @@ func splitTrafficSplitKey(key string) (namespace, name, service string, err erro
 	return parts[0], parts[1], parts[2], nil
 }
 
-// updateDstOverrides updates the dstOverrides of the given serviceprofile
-// to match that of the trafficsplit
-func updateDstOverrides(sp *serviceprofile.ServiceProfile, ts *trafficsplit.TrafficSplit, clusterDomain string) {
+// toServiceProfile updates the given ServiceProfile to match
+// the given TrafficSplit resource
+func (c *SMIController) toServiceProfile(sp serviceprofile.ServiceProfile, ts *trafficsplit.TrafficSplit) *serviceprofile.ServiceProfile {
+	sp.Name = c.toFQDN(ts.Spec.Service, ts.Namespace)
+	sp.Namespace = ts.Namespace
+
+	// OpenAPI validation expects `routes` field to not be nil
+	// in ServiceProfile's v1alpha1 version
+	// This is needed to make adaptor work in k8s <= 1.19 versions
+	if sp.Spec.Routes == nil {
+		sp.Spec.Routes = []*serviceprofile.RouteSpec{}
+	}
+
 	sp.Spec.DstOverrides = make([]*serviceprofile.WeightedDst, len(ts.Spec.Backends))
 	for i, backend := range ts.Spec.Backends {
 		sp.Spec.DstOverrides[i] = &serviceprofile.WeightedDst{
-			Authority: fqdn(backend.Service, ts.Namespace, clusterDomain),
-			Weight:    *backend.Weight,
-		}
-	}
-}
-
-// toServiceProfile converts the given TrafficSplit into the relevant ServiceProfile resource
-func (c *SMIController) toServiceProfile(ts *trafficsplit.TrafficSplit) *serviceprofile.ServiceProfile {
-	spResource := serviceprofile.ServiceProfile{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      c.toFQDN(ts.Spec.Service, ts.Namespace),
-			Namespace: ts.Namespace,
-		},
-	}
-
-	for _, backend := range ts.Spec.Backends {
-		weightedDst := &serviceprofile.WeightedDst{
 			Authority: c.toFQDN(backend.Service, ts.Namespace),
 			Weight:    *backend.Weight,
 		}
-
-		spResource.Spec.DstOverrides = append(spResource.Spec.DstOverrides, weightedDst)
 	}
-
-	return &spResource
+	return &sp
 }
 
 func (c *SMIController) toFQDN(service, namespace string) string {
