@@ -103,7 +103,6 @@ func NewController(
 func (c *SMIController) Run(stopCh <-chan struct{}) error {
 	defer c.workqueue.ShutDown()
 
-	// Start the informer factories to begin populating the informer caches
 	log.Info("Starting SMI Controller")
 
 	// Wait for the caches to be synced before starting workers

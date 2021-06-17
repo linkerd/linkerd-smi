@@ -56,12 +56,12 @@ func main() {
 	// Create SP and TS clientsets
 	spClient, err := spclientset.NewForConfig(config)
 	if err != nil {
-		log.Fatalf("Error building example clientset: %s", err.Error())
+		log.Fatalf("Error building serviceprofile clientset: %s", err.Error())
 	}
 
 	tsClient, err := tsclientset.NewForConfig(config)
 	if err != nil {
-		log.Fatalf("Error building example clientset: %s", err.Error())
+		log.Fatalf("Error building trafficsplit clientset: %s", err.Error())
 	}
 
 	tsInformerFactory := tsinformers.NewSharedInformerFactory(tsClient, time.Second*30)

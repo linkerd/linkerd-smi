@@ -60,10 +60,6 @@ jobs:
     needs: [docker_build]
     runs-on: ubuntu-20.04
     timeout-minutes: 60
-    strategy:
-      matrix:
-        # TODO: Test on stable version too
-        version: [ edge]
     name: Integration tests (${{ matrix.version }})
     steps:
     - name: Checkout code
@@ -96,11 +92,7 @@ jobs:
         kind load image-archive build-archives/smi-adaptor.tar
     - name: Install the Linkerd CLI
       run : |
-        if [ '${{ matrix.version }}' == 'edge' ]; then
-          curl -sL https://run.linkerd.io/install-edge | sh
-        else
-          curl -sL https://run.linkerd.io/install | sh
-        fi
+        curl -sL https://run.linkerd.io/install-edge | sh
     - name: Run Integration Tests
       run: |
         GO111MODULE=on go test --failfast --mod=readonly "./test" --linkerd="$HOME/.linkerd2/bin/linkerd" --integration-tests
