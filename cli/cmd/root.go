@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
+	pkgcmd "github.com/linkerd/linkerd2/pkg/cmd"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -61,5 +62,11 @@ func NewCmdSMI() *cobra.Command {
 	smiCmd.AddCommand(newCmdUninstall())
 	smiCmd.AddCommand(newCmdVersion())
 
+	// resource-aware completion flag configurations
+	pkgcmd.ConfigureNamespaceFlagCompletion(
+		smiCmd, []string{"linkerd-namespace"},
+		kubeconfigPath, impersonate, impersonateGroup, kubeContext)
+
+	pkgcmd.ConfigureKubeContextFlagCompletion(smiCmd, kubeconfigPath)
 	return smiCmd
 }
