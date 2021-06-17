@@ -38,7 +38,7 @@ spec:
         imagePullPolicy: IfNotPresent
         name: smi-adaptor
         ports:
-        - containerPort: 9999
+        - containerPort: 9995
           name: admin-http
       serviceAccountName: smi-adaptor
 ---
