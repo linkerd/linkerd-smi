@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	serviceprofile "github.com/linkerd/linkerd2/controller/gen/apis/serviceprofile/v1alpha2"
 	"github.com/linkerd/linkerd2/controller/gen/client/clientset/versioned/fake"
@@ -99,7 +98,7 @@ func TestController(t *testing.T) {
 			}
 			tsClient := tsfake.NewSimpleClientset(tt.initialTS...)
 			spClient := fake.NewSimpleClientset(tt.iniitialSP...)
-			tsInformer := informers.NewSharedInformerFactory(tsClient, time.Second)
+			tsInformer := informers.NewSharedInformerFactory(tsClient, 0)
 			controller := NewController(
 				k8sAPI.Interface,
 				"cluster.local",

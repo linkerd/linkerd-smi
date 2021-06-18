@@ -64,7 +64,7 @@ func main() {
 		log.Fatalf("Error building trafficsplit clientset: %s", err.Error())
 	}
 
-	tsInformerFactory := tsinformers.NewSharedInformerFactory(tsClient, time.Second*30)
+	tsInformerFactory := tsinformers.NewSharedInformerFactory(tsClient, 10*time.Minute)
 
 	controller := adaptor.NewController(
 		k8sAPI.Client,
