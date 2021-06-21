@@ -256,17 +256,13 @@ func (c *SMIController) syncHandler(ctx context.Context, key string) error {
 			return nil
 		}
 
-		// Check if SP Matches the TS, and update if it not
-		spFromTs := c.toServiceProfile(ts)
-		if !equal(spFromTs, sp) {
-			log.Infof("serviceprofile/%s does not match trafficscplit/%s", sp.Name, ts.Name)
-			updateDstOverrides(sp, ts, c.clusterDomain)
-			_, err = c.spclientset.LinkerdV1alpha2().ServiceProfiles(ts.Namespace).Update(ctx, sp, metav1.UpdateOptions{})
-			if err != nil {
-				return err
-			}
-			log.Infof("updated serviceprofile/%s as it's not equivalent to trafficsplit/%s", sp.Name, ts.Name)
+		// Update the Service Profile
+		updateDstOverrides(sp, ts, c.clusterDomain)
+		_, err = c.spclientset.LinkerdV1alpha2().ServiceProfiles(ts.Namespace).Update(ctx, sp, metav1.UpdateOptions{})
+		if err != nil {
+			return err
 		}
+		log.Infof("updated serviceprofile/%s", sp.Name)
 	}
 
 	return nil
@@ -275,40 +271,6 @@ func (c *SMIController) syncHandler(ctx context.Context, key string) error {
 func ignoreAnnotationPresent(sp *serviceprofile.ServiceProfile) bool {
 	_, ok := sp.Annotations[ignoreServiceProfileAnnotation]
 	return ok
-}
-
-func equal(spA *serviceprofile.ServiceProfile, spB *serviceprofile.ServiceProfile) bool {
-	if spA.Name != spB.Name {
-		return false
-	}
-
-	if spA.Namespace != spB.Namespace {
-		return false
-	}
-
-	if len(spA.Spec.DstOverrides) != len(spB.Spec.DstOverrides) {
-		return false
-	}
-
-	dstOverridesA := make(map[string]string)
-	for _, dstA := range spA.Spec.DstOverrides {
-		dstOverridesA[dstA.Authority] = dstA.Weight.String()
-	}
-
-	// Check if all the authorties from spB exist
-	// in dstOverridesA with the same weight
-	for _, dstB := range spB.Spec.DstOverrides {
-		weight, ok := dstOverridesA[dstB.Authority]
-		if !ok {
-			return false
-		}
-
-		if weight != dstB.Weight.String() {
-			return false
-		}
-	}
-
-	return true
 }
 
 // enqueueTS takes a Ts resource and converts it into a key

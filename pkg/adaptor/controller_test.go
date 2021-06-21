@@ -151,6 +151,40 @@ func TestController(t *testing.T) {
 	// TODO: Add tests for TS Deletion
 }
 
+func equal(spA *serviceprofile.ServiceProfile, spB *serviceprofile.ServiceProfile) bool {
+	if spA.Name != spB.Name {
+		return false
+	}
+
+	if spA.Namespace != spB.Namespace {
+		return false
+	}
+
+	if len(spA.Spec.DstOverrides) != len(spB.Spec.DstOverrides) {
+		return false
+	}
+
+	dstOverridesA := make(map[string]string)
+	for _, dstA := range spA.Spec.DstOverrides {
+		dstOverridesA[dstA.Authority] = dstA.Weight.String()
+	}
+
+	// Check if all the authorties from spB exist
+	// in dstOverridesA with the same weight
+	for _, dstB := range spB.Spec.DstOverrides {
+		weight, ok := dstOverridesA[dstB.Authority]
+		if !ok {
+			return false
+		}
+
+		if weight != dstB.Weight.String() {
+			return false
+		}
+	}
+
+	return true
+}
+
 func newServiceProfileWithSkipAnnotation(name, namespace string, weightedDst map[string]string) *serviceprofile.ServiceProfile {
 	sp := newServiceProfile(name, namespace, weightedDst)
 
