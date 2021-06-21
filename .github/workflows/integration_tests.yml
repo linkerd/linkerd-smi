@@ -21,7 +21,6 @@ jobs:
     timeout-minutes: 30
     steps:
     - name: Checkout code
-      # actions/checkout@v2
       uses: actions/checkout@722adc63f1aa60a57ec37892e133b1d319cae598
     - name: Set environment variables from scripts
       run: |
@@ -31,7 +30,6 @@ jobs:
         echo "DOCKER_REGISTRY=cr.l5d.io/linkerd" >> $GITHUB_ENV
         echo "DOCKER_BUILDKIT_CACHE=${{ runner.temp }}/.buildx-cache" >> $GITHUB_ENV
     - name: Cache docker layers
-      # actions/cache@v2.0.0
       uses: actions/cache@b8204782bbb5f872091ecc5eb9cb7d004e35b1fa
       with:
         path: ${{ env.DOCKER_BUILDKIT_CACHE }}
@@ -51,7 +49,6 @@ jobs:
         docker save "cr.l5d.io/linkerd/smi-adaptor:$TAG" > $ARCHIVES/smi-adaptor.tar
         cp target/cli/linux-amd64/linkerd-smi $ARCHIVES
     - name: Upload artifact
-      # actions/upload-artifact@v1
       uses: actions/upload-artifact@3446296876d12d4e3a0f3145a3c87e67bf0a16b5
       with:
         name: build-archives
@@ -63,9 +60,8 @@ jobs:
     name: Integration tests (${{ matrix.version }})
     steps:
     - name: Checkout code
-      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
     - name: Try to load cached Go modules
-      # actions/cache@v1.1.2
       uses: actions/cache@70655ec8323daeeaa7ef06d7c56e1b9191396cbe
       with:
         path: ~/go/pkg/mod
@@ -73,7 +69,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-go-
     - name: Download image archives
-      # actions/download-artifact@v1
       uses: actions/download-artifact@18f0f591fbc635562c815484d73b6e8e3980482e
       with:
         name: build-archives
