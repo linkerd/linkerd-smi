@@ -46,6 +46,10 @@ type SMIController struct {
 	// time, and makes it easy to ensure we are never processing the same item
 	// simultaneously in two different workers.
 	workqueue workqueue.RateLimitingInterface
+
+	// workers is the number of concurrent goroutines
+	// to process items from the workqueue
+	workers int
 }
 
 // NewController returns a new SMI controller
@@ -54,7 +58,8 @@ func NewController(
 	clusterDomain string,
 	tsclientset tsclientset.Interface,
 	spclientset spclientset.Interface,
-	tsInformer informers.TrafficSplitInformer) *SMIController {
+	tsInformer informers.TrafficSplitInformer,
+	numberOfWorkers int) *SMIController {
 
 	controller := &SMIController{
 		kubeclientset: kubeclientset,
@@ -63,6 +68,7 @@ func NewController(
 		tsSynced:      tsInformer.Informer().HasSynced,
 		spclientset:   spclientset,
 		workqueue:     workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "TrafficSplits"),
+		workers:       numberOfWorkers,
 	}
 
 	// Set up an event handler for when Ts resources change
@@ -113,8 +119,10 @@ func (c *SMIController) Run(stopCh <-chan struct{}) error {
 
 	log.Info("Starting workers")
 	// Launch workers to process TS resources
-	// TODO: Add a setting to specify n number of workers
-	go wait.Until(c.runWorker, time.Second, stopCh)
+
+	for i := 0; i < c.workers; i++ {
+		go wait.Until(c.runWorker, time.Second, stopCh)
+	}
 
 	log.Info("Started workers")
 	<-stopCh
