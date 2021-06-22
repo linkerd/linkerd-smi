@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+set -eu
+
+if [ $# -ne 0 ]; then
+    echo "no arguments allowed for ${0##*/}, given: $*" >&2
+    exit 64
+fi
+
+export DOCKER_REGISTRY=${DOCKER_REGISTRY:-cr.l5d.io/linkerd}
+# buildx cache directory
+export DOCKER_BUILDKIT_CACHE=${DOCKER_BUILDKIT_CACHE:-}
+
+bindir=$( cd "${BASH_SOURCE[0]%/*}" && pwd )
+rootdir=$( cd "$bindir"/.. && pwd )
+
+# shellcheck source=_tag.sh
+. "$bindir"/_tag.sh
+
+cache_params=""
+if [ -n "$DOCKER_BUILDKIT_CACHE" ]; then
+    cache_params="--cache-from type=local,src=${DOCKER_BUILDKIT_CACHE} --cache-to type=local,dest=${DOCKER_BUILDKIT_CACHE},mode=max"
+fi
+
+# shellcheck disable=SC2086
+docker buildx build "$rootdir" $cache_params \
+    --load \
+    -t "$DOCKER_REGISTRY/smi-adaptor:$(head_root_tag)" \
+    -f "$rootdir/adaptor/Dockerfile" \
+    "$@"

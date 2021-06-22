@@ -1,0 +1,43 @@
+---
+###
+### SMI Adaptor Service
+###
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: smi-adaptor
+  labels:
+    linkerd.io/extension: smi
+    component: smi-adaptor
+rules:
+- apiGroups: ["linkerd.io"]
+  resources: ["serviceprofiles"]
+  verbs: ["list", "get", "create", "update"]
+- apiGroups: ["split.smi-spec.io"]
+  resources: ["trafficsplits"]
+  verbs: ["list", "get", "watch"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: smi-adaptor
+  labels:
+    linkerd.io/extension: smi
+    component: smi-adaptor
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: smi-adaptor
+subjects:
+- kind: ServiceAccount
+  name: smi-adaptor
+  namespace: {{.Values.namespace}}
+---
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: smi-adaptor
+  namespace: {{.Values.namespace}}
+  labels:
+    linkerd.io/extension: smi
+    component: smi-adaptor

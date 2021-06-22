@@ -7,6 +7,12 @@
 The Linkerd SMI extension helps users to have [SMI](https://smi-spec.io/) functionality
 in [Linkerd](https://linkerd.io)-enabled Kubernetes clusters.
 
+This repo consists of two components:
+
+- `smi-adaptor`: Runs on your Kubernetes cluster, and transforms SMI
+  resources into Linkerd native resources.
+- `cli`: Runs locally or wherever you install the Linkerd CLI.
+
 ## License
 
 Copyright 2021 the Linkerd Authors. All rights reserved.
