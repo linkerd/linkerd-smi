@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/linkerd/linkerd2/pkg/healthcheck"
-	"github.com/linkerd/linkerd2/pkg/version"
 	"github.com/spf13/cobra"
 )
 
@@ -100,46 +99,6 @@ func smiCategory(hc *healthcheck.HealthChecker) *healthcheck.Category {
 			SurfaceErrorOnRetry().
 			WithCheck(func(ctx context.Context) error {
 				return hc.CheckProxyHealth(ctx, hc.ControlPlaneNamespace, smiNamespace)
-			}))
-
-	checkers = append(checkers,
-		*healthcheck.NewChecker("SMI extension proxies are up-to-date").
-			WithHintAnchor("l5d-smi-proxy-cp-version").
-			Warning().
-			WithCheck(func(ctx context.Context) error {
-				var err error
-				if hc.VersionOverride != "" {
-					hc.LatestVersions, err = version.NewChannels(hc.VersionOverride)
-				} else {
-					uuid := "unknown"
-					if hc.UUID() != "" {
-						uuid = hc.UUID()
-					}
-					hc.LatestVersions, err = version.GetLatestVersions(ctx, uuid, "cli")
-				}
-				if err != nil {
-					return err
-				}
-
-				pods, err := hc.KubeAPIClient().GetPodsByNamespace(ctx, smiNamespace)
-				if err != nil {
-					return err
-				}
-
-				return hc.CheckProxyVersionsUpToDate(pods)
-			}))
-
-	checkers = append(checkers,
-		*healthcheck.NewChecker("SMI extension proxies and cli versions match").
-			WithHintAnchor("l5d-smi-proxy-cli-version").
-			Warning().
-			WithCheck(func(ctx context.Context) error {
-				pods, err := hc.KubeAPIClient().GetPodsByNamespace(ctx, smiNamespace)
-				if err != nil {
-					return err
-				}
-
-				return healthcheck.CheckIfProxyVersionsMatchWithCLI(pods)
 			}))
 
 	return healthcheck.NewCategory(linkerdSMIExtensionCheck, checkers, true)
