@@ -9,6 +9,7 @@ import (
 
 	"github.com/linkerd/linkerd-smi/testutil"
 	serviceprofile "github.com/linkerd/linkerd2/controller/gen/apis/serviceprofile/v1alpha2"
+	"github.com/linkerd/linkerd2/pkg/tls"
 	linkerdtestutil "github.com/linkerd/linkerd2/testutil"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
@@ -19,6 +20,11 @@ import (
 
 var (
 	TestHelper *testutil.TestHelper
+	namespace  = "linkerd-smi-app"
+	tsName     = "backend-traffic-split"
+	spName     = fmt.Sprintf("backend-svc.%s.svc.cluster.local", namespace)
+	backend1   = fmt.Sprintf("backend-svc.%s.svc.cluster.local", namespace)
+	backend2   = fmt.Sprintf("failing-svc.%s.svc.cluster.local", namespace)
 )
 
 func TestMain(m *testing.M) {
@@ -30,14 +36,13 @@ func TestMain(m *testing.M) {
 /// TEST EXECUTION ///
 //////////////////////
 
-func TestTrafficSplitsConversionWithSMIAdaptor(t *testing.T) {
+func TestSMIAdaptorWithCLI(t *testing.T) {
+	// TODO: Skip if Helm path is passed, Better toggling?
+	if TestHelper.IsHelm() {
+		return
+	}
 
 	ctx := context.Background()
-	namespace := "linkerd-smi-app"
-	tsName := "backend-traffic-split"
-	spName := fmt.Sprintf("backend-svc.%s.svc.cluster.local", namespace)
-	backend1 := fmt.Sprintf("backend-svc.%s.svc.cluster.local", namespace)
-	backend2 := fmt.Sprintf("failing-svc.%s.svc.cluster.local", namespace)
 
 	// Install Linkerd
 	out, err := TestHelper.LinkerdRun("install")
@@ -77,37 +82,104 @@ func TestTrafficSplitsConversionWithSMIAdaptor(t *testing.T) {
 			"failed to wait for rollout of deploy/smi-adaptor: %s: %s", err, o)
 	}
 
-	// Create the namespace
-	err = TestHelper.CreateDataPlaneNamespaceIfNotExists(ctx, namespace, map[string]string{})
+	if err = testTrafficSplitsConversionWithSMIAdaptor(ctx); err != nil {
+		linkerdtestutil.AnnotatedFatalf(t,
+			"failed to test SMI Adaptor",
+			"failed to test SMI Adaptor: %s", err)
+	}
+}
+
+func TestSMIAdaptorWithHelm(t *testing.T) {
+
+	// Skip if no Helm path is passed
+	if !TestHelper.IsHelm() {
+		return
+	}
+
+	ctx := context.Background()
+
+	// Install Linkerd Edge
+	_, _, err := TestHelper.HelmRun("repo", "add", "linkerd-edge", "https://helm.linkerd.io/edge")
 	if err != nil {
-		linkerdtestutil.AnnotatedFatalf(t, "Creating namespace failed",
-			"Creating namespace failed\n%s", out)
+		linkerdtestutil.AnnotatedFatal(t, "'helm repo add' command failed", err)
+	}
+
+	helmTLSCerts, err := tls.GenerateRootCAWithDefaults("identity.linkerd.cluster.local")
+	if err != nil {
+		linkerdtestutil.AnnotatedFatalf(t, "failed to generate root certificate for identity",
+			"failed to generate root certificate for identity: %s", err)
+	}
+
+	args := []string{
+		"--set", "identityTrustAnchorsPEM=" + helmTLSCerts.Cred.Crt.EncodeCertificatePEM(),
+		"--set", "identity.issuer.tls.crtPEM=" + helmTLSCerts.Cred.Crt.EncodeCertificatePEM(),
+		"--set", "identity.issuer.tls.keyPEM=" + helmTLSCerts.Cred.EncodePrivateKeyPEM(),
+		"--set", "identity.issuer.crtExpiry=" + helmTLSCerts.Cred.Crt.Certificate.NotAfter.Format(time.RFC3339),
+	}
+
+	if stdout, stderr, err := TestHelper.HelmInstall("linkerd-edge/linkerd2", "linkerd", args...); err != nil {
+		linkerdtestutil.AnnotatedFatalf(t, "'helm install' command failed\n%s\n%s\n%v", stdout, stderr, err)
+	}
+
+	o, err := TestHelper.Kubectl("", "--namespace=linkerd", "rollout", "status", "--timeout=60m", "deploy/linkerd-destination")
+	if err != nil {
+		linkerdtestutil.AnnotatedFatalf(t,
+			"failed to wait rollout of deploy/linkerd-destination",
+			"failed to wait for rollout of deploy/linkerd-destination: %s: %s", err, o)
+	}
+
+	// Install SMI Extension
+	smiArgs := []string{
+		"--set", "adaptor.image.version=" + TestHelper.GetSMIHelmVersion(),
+	}
+
+	if stdout, stderr, err := TestHelper.HelmInstall(TestHelper.GetSMIHelmChart(), "linkerd-smi", smiArgs...); err != nil {
+		linkerdtestutil.AnnotatedFatalf(t, "'helm install' command failed\n%s\n%s\n%v", stdout, stderr, err)
+	}
+
+	o, err = TestHelper.Kubectl("", "--namespace=linkerd-smi", "rollout", "status", "--timeout=60m", "deploy/smi-adaptor")
+	if err != nil {
+		linkerdtestutil.AnnotatedFatalf(t,
+			"failed to wait rollout of deploy/smi-adaptor",
+			"failed to wait for rollout of deploy/smi-adaptor: %s: %s", err, o)
+	}
+
+	if err = testTrafficSplitsConversionWithSMIAdaptor(ctx); err != nil {
+		linkerdtestutil.AnnotatedFatalf(t,
+			"failed to test SMI Adaptor",
+			"failed to test SMI Adaptor: %s", err)
+	}
+}
+
+func testTrafficSplitsConversionWithSMIAdaptor(ctx context.Context) error {
+
+	// Create the namespace
+	err := TestHelper.CreateDataPlaneNamespaceIfNotExists(ctx, namespace, map[string]string{})
+	if err != nil {
+		return fmt.Errorf("Creating namespace failed: %s", err)
 	}
 
 	// Deploy the Application
-	out, err = TestHelper.LinkerdRun("inject", "--manual", "testdata/application.yaml")
+	out, err := TestHelper.LinkerdRun("inject", "--manual", "testdata/application.yaml")
 	if err != nil {
-		linkerdtestutil.AnnotatedFatal(t, "'linkerd inject' command failed", err)
+		return fmt.Errorf("'linkerd inject' command failed: %s", err)
 	}
 
 	out, err = TestHelper.KubectlApply(out, namespace)
 	if err != nil {
-		linkerdtestutil.AnnotatedFatalf(t, "'kubectl apply' command failed",
-			"'kubectl apply' command failed\n%s", out)
+		return fmt.Errorf("'kubectl apply' command failed\n%s", out)
 	}
 
 	// Apply TrafficSplit
 	TsResourceFile := "testdata/traffic-split-leaf-weights.yaml"
 	TsResource, err := linkerdtestutil.ReadFile(TsResourceFile)
 	if err != nil {
-		linkerdtestutil.AnnotatedFatalf(t, "cannot read updated traffic split resource",
-			"cannot read updated traffic split resource: %s, %s", TsResource, err)
+		return fmt.Errorf("cannot read updated traffic split resource: %s, %s", TsResource, err)
 	}
 
 	out, err = TestHelper.KubectlApply(TsResource, namespace)
 	if err != nil {
-		linkerdtestutil.AnnotatedFatalf(t, "failed to update traffic split resource",
-			"failed to update traffic split resource: %s\n %s", err, out)
+		return fmt.Errorf("failed to update traffic split resource: %s\n %s", err, out)
 	}
 
 	// Get the resultant ServiceProfile
@@ -117,8 +189,7 @@ func TestTrafficSplitsConversionWithSMIAdaptor(t *testing.T) {
 		return err
 	})
 	if err != nil {
-		linkerdtestutil.AnnotatedFatalf(t, "failed to retrieve serviceprofile resource",
-			"failed to retrieve serviceprofile resource: %s\n %s", err, out)
+		return fmt.Errorf("failed to retrieve serviceprofile resource: %s\n %s", err, out)
 	}
 
 	// Check if the SP has relevant values
@@ -133,22 +204,19 @@ func TestTrafficSplitsConversionWithSMIAdaptor(t *testing.T) {
 		},
 	})
 	if err != nil {
-		linkerdtestutil.AnnotatedFatalf(t, "failed to match serviceprofile resource",
-			"failed to match serviceprofile resource: %s", err)
+		return fmt.Errorf("failed to match serviceprofile resource: %s", err)
 	}
 
 	// Update the TrafficSplit
 	TsResourceFile = "testdata/updated-traffic-split-leaf-weights.yaml"
 	TsResource, err = linkerdtestutil.ReadFile(TsResourceFile)
 	if err != nil {
-		linkerdtestutil.AnnotatedFatalf(t, "cannot read updated traffic split resource",
-			"cannot read updated traffic split resource: %s, %s", TsResource, err)
+		return fmt.Errorf("cannot read updated traffic split resource: %s, %s", TsResource, err)
 	}
 
 	out, err = TestHelper.KubectlApply(TsResource, namespace)
 	if err != nil {
-		linkerdtestutil.AnnotatedFatalf(t, "failed to update traffic split resource",
-			"failed to update traffic split resource: %s\n %s", err, out)
+		return fmt.Errorf("failed to update traffic split resource: %s\n %s", err, out)
 	}
 
 	// Wait for the Controller to sync up the changes
@@ -160,8 +228,7 @@ func TestTrafficSplitsConversionWithSMIAdaptor(t *testing.T) {
 		return err
 	})
 	if err != nil {
-		linkerdtestutil.AnnotatedFatalf(t, "failed to retrieve serviceprofile resource",
-			"failed to retrieve serviceprofile resource: %s\n %s", err, out)
+		return fmt.Errorf("failed to retrieve serviceprofile resource: %s\n %s", err, out)
 	}
 
 	// Check if the SP has relevant values
@@ -176,15 +243,13 @@ func TestTrafficSplitsConversionWithSMIAdaptor(t *testing.T) {
 		},
 	})
 	if err != nil {
-		linkerdtestutil.AnnotatedFatalf(t, "failed to match serviceprofile resource",
-			"failed to match serviceprofile resource: %s", err)
+		return fmt.Errorf("failed to match serviceprofile resource: %s", err)
 	}
 
 	// Delete the TrafficSplit
 	out, err = TestHelper.Kubectl("", "delete", fmt.Sprintf("--namespace=%s", namespace), fmt.Sprintf("trafficsplit/%s", tsName))
 	if err != nil {
-		linkerdtestutil.AnnotatedFatalf(t, "'kubectl delete' command failed",
-			"'kubectl delete' command failed\n%s", out)
+		return fmt.Errorf("'kubectl delete' command failed\n%s", out)
 	}
 
 	// Wait for the Controller to sync up the changes
@@ -196,16 +261,16 @@ func TestTrafficSplitsConversionWithSMIAdaptor(t *testing.T) {
 		return err
 	})
 	if err != nil {
-		linkerdtestutil.AnnotatedFatalf(t, "failed to retrieve serviceprofile resource",
-			"failed to retrieve serviceprofile resource: %s\n %s", err, out)
+		return fmt.Errorf("failed to retrieve serviceprofile resource: %s\n %s", err, out)
 	}
 
 	// Check if the SP has empty values
 	err = checkIfServiceProfileMatches(sp, spName, namespace, []serviceprofile.WeightedDst{})
 	if err != nil {
-		linkerdtestutil.AnnotatedFatalf(t, "failed to match serviceprofile resource",
-			"failed to match serviceprofile resource: %s", err)
+		return fmt.Errorf("failed to match serviceprofile resource: %s", err)
 	}
+
+	return nil
 }
 
 func checkIfServiceProfileMatches(sp *serviceprofile.ServiceProfile, name, namespace string, weightedDsts []serviceprofile.WeightedDst) error {
