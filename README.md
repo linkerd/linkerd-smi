@@ -1,6 +1,6 @@
 # linkerd-smi
 
-[![Actions](https://github.com/linkerd/linkerd-smi/actions/workflows/actions.yml/badge.svg)](https://github.com/linkerd/linkerd-smi/actions/workflows/actions.yml)
+[![Actions](https://github.com/linkerd/linkerd-smi/actions/workflows/integration_tests.yml/badge.svg)](https://github.com/linkerd/linkerd-smi/actions/workflows/integration_tests.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/linkerd/linkerd-smi)](https://goreportcard.com/report/github.com/linkerd/linkerd-smi)
 [![GitHub license](https://img.shields.io/github/license/linkerd/linkerd-smi.svg)](LICENSE)
 
