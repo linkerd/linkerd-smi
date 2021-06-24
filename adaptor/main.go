@@ -24,6 +24,7 @@ func main() {
 	kubeConfigPath := cmd.String("kubeconfig", "", "path to kube config")
 	metricsAddr := cmd.String("metrics-addr", ":9995", "address to serve scrapable metrics on")
 	clusterDomain := cmd.String("cluster-domain", "cluster.local", "kubernetes cluster domain")
+	workers := cmd.Int("worker-threads", 2, "number of concurrent goroutines to process the workqueue")
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
@@ -72,6 +73,7 @@ func main() {
 		tsClient,
 		spClient,
 		tsInformerFactory.Split().V1alpha1().TrafficSplits(),
+		*workers,
 	)
 
 	// Start the Admin Server

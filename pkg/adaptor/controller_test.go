@@ -105,6 +105,7 @@ func TestController(t *testing.T) {
 				tsClient,
 				spClient,
 				tsInformer.Split().V1alpha1().TrafficSplits(),
+				2,
 			)
 
 			for _, ts := range tt.tsUpdates {
