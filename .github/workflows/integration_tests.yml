@@ -68,9 +68,6 @@ jobs:
       run: |
         . bin/_tag.sh
         echo "TAG=$(CI_FORCE_CLEAN=1 bin/root-tag)" >> $GITHUB_ENV
-
-        echo "DOCKER_REGISTRY=cr.l5d.io/linkerd" >> $GITHUB_ENV
-        echo "DOCKER_BUILDKIT_CACHE=${{ runner.temp }}/.buildx-cache" >> $GITHUB_ENV
     - name: Try to load cached Go modules
       uses: actions/cache@70655ec8323daeeaa7ef06d7c56e1b9191396cbe
       with:
