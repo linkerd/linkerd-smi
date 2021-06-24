@@ -31,7 +31,6 @@ type TestHelper struct {
 }
 
 type helm struct {
-	certsPath    string
 	path         string
 	smiHelmChart string
 	smiVersion   string
@@ -53,7 +52,6 @@ func NewTestHelper() *TestHelper {
 	helmPath := flag.String("helm-path", "", "path to the helm binary to test")
 	smiHelmChart := flag.String("smi-helm-chart", "charts/linkerd-smi", "path to linkerd2's SMI extension Helm chart")
 	smiHelmVersion := flag.String("smi-helm-version", "", "SMI Version to use when installing linkerd-smi Helm chart")
-	certsPath := flag.String("certs-path", "", "path to the certs folder to be used with Linkerd core installation in Helm")
 
 	flag.Parse()
 
@@ -88,7 +86,6 @@ func NewTestHelper() *TestHelper {
 			path:         *helmPath,
 			smiHelmChart: *smiHelmChart,
 			smiVersion:   *smiHelmVersion,
-			certsPath:    *certsPath,
 		},
 	}
 
@@ -118,11 +115,6 @@ func NewTestHelper() *TestHelper {
 // GetSMIHelmChart returns the path to the linkerd-smi Helm chart
 func (h *TestHelper) GetSMIHelmChart() string {
 	return h.helm.smiHelmChart
-}
-
-// GetCertsPath returns the path to the cert files
-func (h *TestHelper) GetCertsPath() string {
-	return h.helm.certsPath
 }
 
 // GetSMIHelmVersion returns the version of the linkerd-smi Helm chart
