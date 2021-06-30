@@ -95,11 +95,12 @@ jobs:
     - name: Install the Linkerd CLI
       run : |
         curl -sL https://run.linkerd.io/install-edge | sh
-    - name: Run Integration Tests
+    - name: Run Integration Tests ({{ $matrix.test }})
+      if: ${{ matrix.test }} == 'helm'
       run: |
-        if [ '${{ matrix.test }}' == 'helm' ]; then
           projectdir=$(pwd)
           GO111MODULE=on go test --failfast --mod=readonly "./test" --linkerd="$HOME/.linkerd2/bin/linkerd" --helm-path="$projectdir/bin/helm" --smi-helm-chart="$projectdir/charts/linkerd-smi" --smi-helm-version="$TAG" --integration-tests
-        else
-          GO111MODULE=on go test --failfast --mod=readonly "./test" --linkerd="$HOME/.linkerd2/bin/linkerd" --integration-tests
-        fi
+    - name: Run Integration Tests ({{ $matrix.test }})  
+      if: ${{ matrix.test }} == 'cli'
+      run: |
+        GO111MODULE=on go test --failfast --mod=readonly "./test" --linkerd="$HOME/.linkerd2/bin/linkerd" --integration-tests
