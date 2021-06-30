@@ -114,7 +114,12 @@ func TestController(t *testing.T) {
 
 			// Handle TS objects
 			for _, ts := range tt.tsUpdates {
-				controller.syncHandler(ctx, trafficSplitKeyFunc(*ts))
+				controller.syncHandler(ctx,
+					trafficSplitKey{
+						name:      ts.Name,
+						namespace: ts.Namespace,
+						service:   ts.Spec.Service,
+					})
 			}
 
 			// Match expectedServiceProfiles with the ones in the cluster

@@ -3,7 +3,6 @@ package adaptor
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	serviceprofile "github.com/linkerd/linkerd2/controller/gen/apis/serviceprofile/v1alpha2"
@@ -25,6 +24,15 @@ const (
 	// ignoreServiceProfileAnnotation is used with Service Profiles
 	// to prevent the SMI adaptor from changing it
 	ignoreServiceProfileAnnotation = "smi.linkerd.io/skip"
+)
+
+type (
+	// trafficSplitKey is the type used with the workqueue
+	trafficSplitKey struct {
+		name      string
+		namespace string
+		service   string
+	}
 )
 
 // SMIController is an adaptor that converts SMI resources
@@ -157,14 +165,13 @@ func (c *SMIController) processNextWorkItem() bool {
 		// put back on the workqueue and attempted again after a back-off
 		// period.
 		defer c.workqueue.Done(obj)
-		var key string
+		var key trafficSplitKey
 		var ok bool
-		// We expect strings to come off the workqueue. These are of the
-		// form namespace/name. We do this as the delayed nature of the
-		// workqueue means the items in the informer cache may actually be
-		// more up to date that when the item was initially put onto the
-		// workqueue.
-		if key, ok = obj.(string); !ok {
+		// We expect trafficSplitKey to come off the workqueue. We do this as
+		// the delayed nature of the workqueue means the items in the informer
+		// cache may actually be more up to date that when the item was
+		// initially put onto the workqueue.
+		if key, ok = obj.(trafficSplitKey); !ok {
 			// As the item in the workqueue is actually invalid, we call
 			// Forget here else we'd go into a loop of attempting to
 			// process a work item that is invalid.
@@ -177,12 +184,12 @@ func (c *SMIController) processNextWorkItem() bool {
 		if err := c.syncHandler(context.Background(), key); err != nil {
 			// Put the item back on the workqueue to handle any transient errors.
 			c.workqueue.AddRateLimited(key)
-			return fmt.Errorf("error syncing '%s': %s, requeuing", key, err.Error())
+			return fmt.Errorf("error syncing '%s/%s': %s, requeuing", key.namespace, key.name, err.Error())
 		}
 		// Finally, if no error occurs we Forget this item so it does not
 		// get queued again until another change happens.
 		c.workqueue.Forget(obj)
-		log.Infof("Successfully synced '%s'", key)
+		log.Infof("Successfully synced '%s/%s'", key.namespace, key.name)
 		return nil
 	}(obj)
 
@@ -197,16 +204,10 @@ func (c *SMIController) processNextWorkItem() bool {
 // syncHandler compares the actual state with the desired, and attempts to
 // converge the two. It then updates the Status block of the Ts resource
 // with the current status of the resource.
-func (c *SMIController) syncHandler(ctx context.Context, key string) error {
-	// Convert the namespace/name string into a distinct namespace and name
-	namespace, name, service, err := splitTrafficSplitKey(key)
-	if err != nil {
-		log.Errorf("invalid resource key: %s", key)
-		return nil
-	}
+func (c *SMIController) syncHandler(ctx context.Context, tsKey trafficSplitKey) error {
 
 	// Get the Ts resource with this namespace/name
-	ts, err := c.tsclientset.SplitV1alpha1().TrafficSplits(namespace).Get(ctx, name, metav1.GetOptions{})
+	ts, err := c.tsclientset.SplitV1alpha1().TrafficSplits(tsKey.namespace).Get(ctx, tsKey.name, metav1.GetOptions{})
 	if err != nil {
 		// Return if its not a not found error
 		if !errors.IsNotFound(err) {
@@ -216,8 +217,8 @@ func (c *SMIController) syncHandler(ctx context.Context, key string) error {
 		// TS does not exist anymore
 		// Check if there is a relevant SP that was created or updated by SMI Controller
 		// and clean up its dstOverrides
-		log.Infof("trafficsplit/%s is deleted, trying to cleanup the relevant serviceprofile", name)
-		sp, err := c.spclientset.LinkerdV1alpha2().ServiceProfiles(namespace).Get(ctx, c.toFQDN(service, namespace), metav1.GetOptions{})
+		log.Infof("trafficsplit/%s is deleted, trying to cleanup the relevant serviceprofile", tsKey.name)
+		sp, err := c.spclientset.LinkerdV1alpha2().ServiceProfiles(tsKey.namespace).Get(ctx, c.toFQDN(tsKey.service, tsKey.namespace), metav1.GetOptions{})
 		if err != nil {
 			// Return nil if not found, as no need to clean up
 			if errors.IsNotFound(err) {
@@ -233,7 +234,7 @@ func (c *SMIController) syncHandler(ctx context.Context, key string) error {
 
 		// Empty dstOverrides in the SP
 		sp.Spec.DstOverrides = nil
-		_, err = c.spclientset.LinkerdV1alpha2().ServiceProfiles(namespace).Update(ctx, sp, metav1.UpdateOptions{})
+		_, err = c.spclientset.LinkerdV1alpha2().ServiceProfiles(tsKey.namespace).Update(ctx, sp, metav1.UpdateOptions{})
 		if err != nil {
 			return err
 		}
@@ -285,23 +286,12 @@ func ignoreAnnotationPresent(sp *serviceprofile.ServiceProfile) bool {
 // string which is then put onto the work queue. This method should *not* be
 // passed resources of any type other than TS.
 func (c *SMIController) enqueueTS(ts trafficsplit.TrafficSplit) {
-	key := trafficSplitKeyFunc(ts)
-	c.workqueue.Add(key)
-}
-
-// trafficSplitKeyFunc takes a TS, and gives back a
-// namespace/name/service key string
-func trafficSplitKeyFunc(ts trafficsplit.TrafficSplit) string {
-	return ts.Namespace + "/" + ts.Name + "/" + ts.Spec.Service
-}
-
-func splitTrafficSplitKey(key string) (namespace, name, service string, err error) {
-	parts := strings.Split(key, "/")
-	if len(parts) != 3 {
-		return "", "", "", fmt.Errorf("unexpected key format: %q", key)
-	}
-
-	return parts[0], parts[1], parts[2], nil
+	c.workqueue.Add(
+		trafficSplitKey{
+			name:      ts.Name,
+			namespace: ts.Namespace,
+			service:   ts.Spec.Service,
+		})
 }
 
 // updateDstOverrides updates the dstOverrides of the given serviceprofile
