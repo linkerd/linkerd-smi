@@ -121,11 +121,15 @@ func TestSMIAdaptorWithHelm(t *testing.T) {
 		linkerdtestutil.AnnotatedFatalf(t, "'helm install' command failed\n%s\n%s\n%v", stdout, stderr, err)
 	}
 
-	o, err := TestHelper.Kubectl("", "--namespace=linkerd", "rollout", "status", "--timeout=60m", "deploy/linkerd-destination")
-	if err != nil {
-		linkerdtestutil.AnnotatedFatalf(t,
-			"failed to wait rollout of deploy/linkerd-destination",
-			"failed to wait for rollout of deploy/linkerd-destination: %s: %s", err, o)
+	// Check if linkerd is ready
+	for _, deploy := range []string{"linkerd-destination", "linkerd-identity", "linkerd-proxy-injector"} {
+		if err := TestHelper.CheckPods(ctx, "linkerd", deploy, 1); err != nil {
+			if rce, ok := err.(*linkerdtestutil.RestartCountError); ok {
+				linkerdtestutil.AnnotatedFatal(t, "CheckPods timed-out", rce)
+			} else {
+				linkerdtestutil.AnnotatedFatal(t, "CheckPods timed-out", err)
+			}
+		}
 	}
 
 	// Install SMI Extension
@@ -137,7 +141,7 @@ func TestSMIAdaptorWithHelm(t *testing.T) {
 		linkerdtestutil.AnnotatedFatalf(t, "'helm install' command failed\n%s\n%s\n%v", stdout, stderr, err)
 	}
 
-	o, err = TestHelper.Kubectl("", "--namespace=linkerd-smi", "rollout", "status", "--timeout=60m", "deploy/smi-adaptor")
+	o, err := TestHelper.Kubectl("", "--namespace=linkerd-smi", "rollout", "status", "--timeout=60m", "deploy/smi-adaptor")
 	if err != nil {
 		linkerdtestutil.AnnotatedFatalf(t,
 			"failed to wait rollout of deploy/smi-adaptor",
