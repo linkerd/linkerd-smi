@@ -26,6 +26,7 @@ type checkOptions struct {
 	output    string
 	proxy     bool
 	namespace string
+	pre       string
 }
 
 func smiCategory(hc *healthcheck.HealthChecker) *healthcheck.Category {
@@ -142,7 +143,11 @@ code.`,
 	cmd.Flags().DurationVar(&options.wait, "wait", options.wait, "Maximum allowed time for all tests to pass")
 	cmd.Flags().BoolVar(&options.proxy, "proxy", options.proxy, "Also run data-plane checks, to determine if the data plane is healthy")
 	cmd.Flags().StringVarP(&options.namespace, "namespace", "n", options.namespace, "Namespace to use for --proxy checks (default: all namespaces)")
+	cmd.Flags().StringVar(&options.pre, "pre", options.namespace, "Only run pre-installation checks, to determine if the extension can be installed")
 
+	// stop marking these flags as hidden, once they are being supported
+	cmd.Flags().MarkHidden("pre")
+	cmd.Flags().MarkHidden("proxy")
 	return cmd
 }
 
