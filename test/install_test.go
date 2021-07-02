@@ -51,11 +51,11 @@ func TestTrafficSplitsConversionWithSMIAdaptor(t *testing.T) {
 			"'kubectl apply' command failed\n%s", out)
 	}
 
-	o, err := TestHelper.Kubectl("", "--namespace=linkerd", "rollout", "status", "--timeout=60m", "deploy/linkerd-destination")
+	out, err = TestHelper.Kubectl("", "--namespace=linkerd", "rollout", "status", "--timeout=60m", "deploy/linkerd-destination")
 	if err != nil {
 		linkerdtestutil.AnnotatedFatalf(t,
 			"failed to wait rollout of deploy/linkerd-destination",
-			"failed to wait for rollout of deploy/linkerd-destination: %s: %s", err, o)
+			"failed to wait for rollout of deploy/linkerd-destination: %s: %s", err, out)
 	}
 
 	// Install SMI extension
@@ -70,11 +70,10 @@ func TestTrafficSplitsConversionWithSMIAdaptor(t *testing.T) {
 			"'kubectl apply' command failed\n%s", out)
 	}
 
-	o, err = TestHelper.Kubectl("", "--namespace=linkerd-smi", "rollout", "status", "--timeout=60m", "deploy/smi-adaptor")
+	out, err = TestHelper.LinkerdSMIRun("check")
 	if err != nil {
-		linkerdtestutil.AnnotatedFatalf(t,
-			"failed to wait rollout of deploy/smi-adaptor",
-			"failed to wait for rollout of deploy/smi-adaptor: %s: %s", err, o)
+		linkerdtestutil.AnnotatedFatalf(t, "'linkerd smi check' command failed",
+			"'linkerd smi check' command failed\n%s", out)
 	}
 
 	// Create the namespace

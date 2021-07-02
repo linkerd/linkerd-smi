@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/fatih/color"
 	pkgcmd "github.com/linkerd/linkerd2/pkg/cmd"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -16,6 +17,12 @@ const (
 )
 
 var (
+
+	// special handling for Windows, on all other platforms these resolve to
+	// os.Stdout and os.Stderr, thanks to https://github.com/mattn/go-colorable
+	stdout = color.Output
+	stderr = color.Error
+
 	apiAddr               string // An empty value means "use the Kubernetes configuration"
 	controlPlaneNamespace string
 	kubeconfigPath        string
@@ -61,6 +68,7 @@ func NewCmdSMI() *cobra.Command {
 	smiCmd.AddCommand(newCmdInstall())
 	smiCmd.AddCommand(newCmdUninstall())
 	smiCmd.AddCommand(newCmdVersion())
+	smiCmd.AddCommand(newCmdCheck())
 
 	// resource-aware completion flag configurations
 	pkgcmd.ConfigureNamespaceFlagCompletion(
