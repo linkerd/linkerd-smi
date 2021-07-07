@@ -7,9 +7,6 @@ namespace: linkerd-smi
 # -- Kubernetes DNS Domain name to use
 clusterDomain: cluster.local
 
-# -- SMI extension Version
-linkerdSMIVersion: &linkerd_smi_version linkerdSMIVersionValue
-
 # SMI Adaptor configuration
 adaptor:
   image:
@@ -18,6 +15,6 @@ adaptor:
     # -- Docker image name for the adaptor instance
     name: smi-adaptor
     # -- Docker image tag for the adaptor instance
-    tag: *linkerd_smi_version
+    tag: linkerdSMIVersionValue
     # -- Pull policy  for the adaptor instance
     pullPolicy: IfNotPresent
