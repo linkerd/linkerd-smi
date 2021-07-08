@@ -37,7 +37,7 @@ arch() {
       echo "arm"
       ;;
     amd64|arm64)
-      echo $arch
+      echo "$arch"
       ;;
     *)
       echo "unsupported architecture: $arch" >&2

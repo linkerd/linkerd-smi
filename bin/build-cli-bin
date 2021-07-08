@@ -25,7 +25,7 @@ export CLI_MULTIARCH=${CLI_MULTIARCH:-}
         CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o $target/linkerd-smi-darwin-arm64 -tags production -mod=readonly -ldflags "${GO_LDFLAGS}" ./cli
         CGO_ENABLED=0 GOOS=windows go build -o $target/linkerd-smi-windows -tags production -mod=readonly -ldflags "${GO_LDFLAGS}" ./cli
     else
-        CGO_ENABLED=0 GOOS=$(os) GOARCH=$(arch) go build -o $target/linkerd-smi-$(os)-$(arch) -tags production -mod=readonly -ldflags "${GO_LDFLAGS}" ./cli
+        CGO_ENABLED=0 GOOS=$(os) GOARCH=$(arch) go build -o "$target/linkerd-smi-$(os)-$(arch)" -tags production -mod=readonly -ldflags "${GO_LDFLAGS}" ./cli
         echo "$target/linkerd-smi-$(os)-$(arch)"
     fi
 )
