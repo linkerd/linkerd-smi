@@ -47,7 +47,7 @@ jobs:
       run: |
         mkdir -p $ARCHIVES
         docker save "cr.l5d.io/linkerd/smi-adaptor:$TAG" > $ARCHIVES/smi-adaptor.tar
-        cp target/cli/linux-amd64/linkerd-smi $ARCHIVES
+        cp target/cli/linkerd-smi-linux-amd64 $ARCHIVES
     - name: Upload artifact
       uses: actions/upload-artifact@3446296876d12d4e3a0f3145a3c87e67bf0a16b5
       with:
@@ -87,7 +87,7 @@ jobs:
       run: |
         mkdir -p $HOME/.linkerd2/bin
         echo "$HOME/.linkerd2/bin" >> $GITHUB_PATH
-        mv build-archives/linkerd-smi "$HOME/.linkerd2/bin"
+        mv build-archives/linkerd-smi-linux-amd64 "$HOME/.linkerd2/bin/linkerd-smi"
         chmod +x $HOME/.linkerd2/bin/linkerd-smi
 
         # load image into the cluster
