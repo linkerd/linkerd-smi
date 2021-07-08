@@ -1,0 +1,105 @@
+name: Release
+on:
+  push:
+    tags:
+    - "*"
+permissions:
+  contents: read
+env:
+  GH_ANNOTATION: true
+jobs:
+  docker_build:
+    runs-on: ubuntu-20.04
+    name: Build SMI Extension
+    timeout-minutes: 30
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@722adc63f1aa60a57ec37892e133b1d319cae598
+    - name: Set environment variables from scripts
+      run: |
+        . bin/_tag.sh
+        echo "TAG=$(CI_FORCE_CLEAN=1 bin/root-tag)" >> $GITHUB_ENV
+
+        echo "DOCKER_REGISTRY=cr.l5d.io/linkerd" >> $GITHUB_ENV
+        echo "DOCKER_BUILDKIT_CACHE=${{ runner.temp }}/.buildx-cache" >> $GITHUB_ENV
+    - name: Cache docker layers
+      uses: actions/cache@b8204782bbb5f872091ecc5eb9cb7d004e35b1fa
+      with:
+        path: ${{ env.DOCKER_BUILDKIT_CACHE }}
+        key: ${{ runner.os }}-buildx-smi-${{ env.TAG }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-smi-
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@27d0a4f181a40b142cce983c5393082c365d1480
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@e673438944759779e411a0f7ceef3ba437dccfa0
+    - name: Build SMI docker images and CLI
+      env:
+        DOCKER_MULTIARCH: 1
+        CLI_MULTIARCH: 1
+      run: |
+        bin/docker-build
+        bin/build-cli-bin
+    - name: Create artifact with CLI and image archives
+      env:
+        ARCHIVES: /home/runner/archives
+      run: |
+        mkdir -p $ARCHIVES
+        docker save "cr.l5d.io/linkerd/smi-adaptor:$TAG" > $ARCHIVES/smi-adaptor.tar
+        cp target/cli/linkerd-smi-linux-amd64 $ARCHIVES
+    - name: Upload artifact
+      uses: actions/upload-artifact@3446296876d12d4e3a0f3145a3c87e67bf0a16b5
+      with:
+        name: build-archives
+        path: /home/runner/archives
+  integration_tests:
+    needs: [docker_build]
+    runs-on: ubuntu-20.04
+    timeout-minutes: 60
+    name: Integration tests
+    strategy:
+      matrix:
+        test: [helm, cli]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+    - name: Set environment variables from scripts
+      run: |
+        . bin/_tag.sh
+        echo "TAG=$(CI_FORCE_CLEAN=1 bin/root-tag)" >> $GITHUB_ENV
+    - name: Try to load cached Go modules
+      uses: actions/cache@70655ec8323daeeaa7ef06d7c56e1b9191396cbe
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    - name: Download image archives
+      uses: actions/download-artifact@18f0f591fbc635562c815484d73b6e8e3980482e
+      with:
+        name: build-archives
+    - name: Create k8s Kind Cluster
+      uses: engineerd/setup-kind@v0.5.0
+      with:
+        version: "v0.11.1"
+    - name: Load the SMI extension CLI and Images
+      run: |
+        mkdir -p $HOME/.linkerd2/bin
+        echo "$HOME/.linkerd2/bin" >> $GITHUB_PATH
+        mv build-archives/linkerd-smi-linux-amd64 "$HOME/.linkerd2/bin/linkerd-smi"
+        chmod +x $HOME/.linkerd2/bin/linkerd-smi
+
+        # load image into the cluster
+        kind load image-archive build-archives/smi-adaptor.tar
+    - name: Install the Linkerd CLI
+      run : |
+        curl -sL https://run.linkerd.io/install-edge | sh
+    - name: Run Helm Integration Tests
+      if: ${{ matrix.test == 'helm' }}
+      run: |
+          projectdir=$(pwd)
+          GO111MODULE=on go test --failfast --mod=readonly "./test" --linkerd="$HOME/.linkerd2/bin/linkerd" --helm-path="$projectdir/bin/helm" --smi-helm-chart="$projectdir/charts/linkerd-smi" --smi-helm-version="$TAG" --integration-tests
+    - name: Run CLI Integration Tests
+      if: ${{ matrix.test == 'cli' }}
+      run: |
+        GO111MODULE=on go test --failfast --mod=readonly "./test" --linkerd="$HOME/.linkerd2/bin/linkerd" --integration-tests
