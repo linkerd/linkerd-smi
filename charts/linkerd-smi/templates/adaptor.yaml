@@ -25,7 +25,7 @@ spec:
       - args:
         - smi-adaptor
         - -cluster-domain={{.Values.clusterDomain}}
-        image: {{.Values.adaptor.image.name}}:{{.Values.adaptor.image.version}}
+        image: {{.Values.adaptor.image.registry}}/{{.Values.adaptor.image.name}}:{{.Values.adaptor.image.tag}}
         imagePullPolicy: {{.Values.adaptor.image.pullPolicy}}
         name: smi-adaptor
         ports:
