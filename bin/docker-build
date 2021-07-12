@@ -28,11 +28,6 @@ fi
 output_params=""
 if [ -n "$DOCKER_PUSH" ]; then
     output_params+=" --push"
-else
-    echo "Error: env DOCKER_PUSH=1 is missing"
-    echo "When building the multi-arch images it is required to push the images to the registry"
-    echo "See https://github.com/docker/buildx/issues/59 for more details"
-    exit 1
 fi
 
 # shellcheck disable=SC2086
