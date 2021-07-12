@@ -11,6 +11,9 @@ export DOCKER_REGISTRY=${DOCKER_REGISTRY:-cr.l5d.io/linkerd}
 # buildx cache directory
 export DOCKER_BUILDKIT_CACHE=${DOCKER_BUILDKIT_CACHE:-}
 
+# When set together with DOCKER_MULTIARCH, it will push the multi-arch images to the registry
+export DOCKER_PUSH=${DOCKER_PUSH:-}
+
 bindir=$( cd "${BASH_SOURCE[0]%/*}" && pwd )
 rootdir=$( cd "$bindir"/.. && pwd )
 
@@ -22,8 +25,19 @@ if [ -n "$DOCKER_BUILDKIT_CACHE" ]; then
     cache_params="--cache-from type=local,src=${DOCKER_BUILDKIT_CACHE} --cache-to type=local,dest=${DOCKER_BUILDKIT_CACHE},mode=max"
 fi
 
+output_params=""
+if [ -n "$DOCKER_PUSH" ]; then
+    output_params+=" --push"
+else
+    echo "Error: env DOCKER_PUSH=1 is missing"
+    echo "When building the multi-arch images it is required to push the images to the registry"
+    echo "See https://github.com/docker/buildx/issues/59 for more details"
+    exit 1
+fi
+
 # shellcheck disable=SC2086
 docker buildx build "$rootdir" $cache_params \
+    $output_params \
     --load \
     -t "$DOCKER_REGISTRY/smi-adaptor:$(head_root_tag)" \
     -f "$rootdir/adaptor/Dockerfile" \
