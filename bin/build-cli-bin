@@ -16,7 +16,7 @@ export CLI_MULTIARCH=${CLI_MULTIARCH:-}
     cd "$(pwd -P)"
     target=target/cli
      # TODO: `go generate` does not honor -mod=readonly
-    GO111MODULE=on go generate -mod=readonly ./pkg/static
+    go generate -mod=readonly ./pkg/static
     root_tag=$("$bindir"/root-tag)
     GO_LDFLAGS="-s -w -X github.com/linkerd/linkerd-smi/pkg/version.Version=$root_tag"
     if [ -n "$CLI_MULTIARCH" ]; then
