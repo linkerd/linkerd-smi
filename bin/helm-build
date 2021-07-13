@@ -42,9 +42,6 @@ if [ "$1" = package ]; then
 
     "$bindir"/helm --version "$version" --app-version "$tag" -d "$rootdir"/target/helm package "$rootdir"/charts/linkerd-smi
 
-    mv "$rootdir"/target/helm/index-pre.yaml "$rootdir"/target/helm/index-pre-"$version".yaml
-    "$bindir"/helm repo index --url "https://linkerd.github.io/linkerd-smi/" --merge "$rootdir"/target/helm/index-pre-"$version".yaml "$rootdir"/target/helm
-
     # restore version in Values files
     setValues "$fullVersion" "linkerdSMIVersionValue"
 fi

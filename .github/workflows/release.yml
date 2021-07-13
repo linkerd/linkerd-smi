@@ -11,6 +11,7 @@ jobs:
   docker_build:
     runs-on: ubuntu-20.04
     name: Build SMI Extension
+    if: startsWith(github.ref, 'refs/tags/v')
     timeout-minutes: 30
     steps:
     - name: Checkout code
@@ -20,7 +21,7 @@ jobs:
         . bin/_tag.sh
         echo "TAG=$(CI_FORCE_CLEAN=1 bin/root-tag)" >> $GITHUB_ENV
 
-        echo "DOCKER_REGISTRY=cr.l5d.io/linkerd" >> $GITHUB_ENV
+        echo "DOCKER_REGISTRY=ghcr.io/linkerd" >> $GITHUB_ENV
         echo "DOCKER_BUILDKIT_CACHE=${{ runner.temp }}/.buildx-cache" >> $GITHUB_ENV
     - name: Cache docker layers
       uses: actions/cache@b8204782bbb5f872091ecc5eb9cb7d004e35b1fa
@@ -40,15 +41,19 @@ jobs:
         # Need to push here instead for multi-arch image push to work
         DOCKER_PUSH: 1
       run: |
+        echo "${{ secrets.DOCKER_GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.DOCKER_GHCR_USERNAME }}" --password-stdin
         bin/docker-build
         bin/build-cli-bin
+        bin/helm-build package
     - name: Create artifact with CLI and image archives
       env:
         ARCHIVES: /home/runner/archives
       run: |
         mkdir -p $ARCHIVES/cli
+        mkdir -p $ARCHIVES/helm
         docker save "cr.l5d.io/linkerd/smi-adaptor:$TAG" > $ARCHIVES/smi-adaptor.tar
         cp target/cli/ $ARCHIVES/cli/
+        cp target/helm/ $ARCHIVES/helm/
     - name: Upload artifact
       uses: actions/upload-artifact@3446296876d12d4e3a0f3145a3c87e67bf0a16b5
       with:
@@ -57,6 +62,7 @@ jobs:
   integration_tests:
     needs: [docker_build]
     runs-on: ubuntu-20.04
+    if: startsWith(github.ref, 'refs/tags/v')
     timeout-minutes: 60
     name: Integration tests
     strategy:
@@ -126,7 +132,7 @@ jobs:
       uses: actions/download-artifact@18f0f591fbc635562c815484d73b6e8e3980482e
       with:
         name: build-archives
-    - name: Move Binaries and Generate SHA256SUMS
+    - name: Generate SHA256SUMS
       run: |
         mkdir -p ./target/release
         OS="darwin windows linux-amd64 darwin-arm64 linux-arm64 linux-arm"
@@ -140,6 +146,11 @@ jobs:
           openssl dgst -sha256 "$filepath" | awk '{print $2}' > "$filepath.sha256"
           echo "$filepath"
         done
+
+        # generate for helm chart
+        mkdir -p ./target/helm
+        cp build-archives/linkerd-smi-$TAG.tgz ./target/helm
+        openssl dgst -sha256 build-archives/linkerd-smi-$TAG.tgz | awk '{print $2}' > "build-archives/linkerd-smi-$TAG.tgz.sha256"
     - name: Create release
       id: create_release
       uses: softprops/action-gh-release@91409e712cf565ce9eff10c87a8d1b11b81757ae
@@ -150,6 +161,8 @@ jobs:
         prerelease: false
         body_path: NOTES.md
         files: |
+          ./target/release/linkerd-smi-*.tgz
+          ./target/release/linkerd-smi-*.tgz.sha256
           ./target/release/linkerd-smi-*-darwin*
           ./target/release/linkerd-smi-*-darwin*.sha256
           ./target/release/linkerd-smi-*-linux-*
