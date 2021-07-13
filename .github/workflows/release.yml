@@ -45,15 +45,14 @@ jobs:
         bin/docker-build
         bin/build-cli-bin
         bin/helm-build package
-    - name: Create artifact with CLI and image archives
+    - name: Create artifact with CLI and helm packages
       env:
         ARCHIVES: /home/runner/archives
       run: |
         mkdir -p $ARCHIVES/cli
         mkdir -p $ARCHIVES/helm
-        docker save "cr.l5d.io/linkerd/smi-adaptor:$TAG" > $ARCHIVES/smi-adaptor.tar
-        cp target/cli/ $ARCHIVES/cli/
-        cp target/helm/ $ARCHIVES/helm/
+        cp -r target/cli/ $ARCHIVES
+        cp -r target/helm/ $ARCHIVES
     - name: Upload artifact
       uses: actions/upload-artifact@3446296876d12d4e3a0f3145a3c87e67bf0a16b5
       with:
@@ -96,9 +95,6 @@ jobs:
         echo "$HOME/.linkerd2/bin" >> $GITHUB_PATH
         cp build-archives/linkerd-smi-linux-amd64 "$HOME/.linkerd2/bin/linkerd-smi"
         chmod +x $HOME/.linkerd2/bin/linkerd-smi
-
-        # load image into the cluster
-        kind load image-archive build-archives/smi-adaptor.tar
     - name: Install the Linkerd CLI
       run : |
         curl -sL https://run.linkerd.io/install-edge | sh
@@ -141,7 +137,7 @@ jobs:
           if [ "$os" = windows ]; then
             ext=windows.exe
           fi
-          filepath=./target/release/linkerd-smi-$TAG-$ext
+          filepath=./target/release/linkerd-smi-${{ env.TAG }}-$ext
           cp "build-archives/linkerd-$os" "$filepath"
           openssl dgst -sha256 "$filepath" | awk '{print $2}' > "$filepath.sha256"
           echo "$filepath"
@@ -149,8 +145,8 @@ jobs:
 
         # generate for helm chart
         mkdir -p ./target/helm
-        cp build-archives/linkerd-smi-$TAG.tgz ./target/helm
-        openssl dgst -sha256 build-archives/linkerd-smi-$TAG.tgz | awk '{print $2}' > "build-archives/linkerd-smi-$TAG.tgz.sha256"
+        cp build-archives/linkerd-smi-${{ env.TAG }}.tgz ./target/helm
+        openssl dgst -sha256 build-archives/linkerd-smi-${{ env.TAG }}.tgz | awk '{print $2}' > "build-archives/linkerd-smi-$TAG.tgz.sha256"
     - name: Create release
       id: create_release
       uses: softprops/action-gh-release@91409e712cf565ce9eff10c87a8d1b11b81757ae
