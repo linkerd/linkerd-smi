@@ -1,10 +1,20 @@
+# -- Set to false when installing in a custom namespace
+installNamespace: true
+
+# -- Namespace in which to install the SMI extension
 namespace: linkerd-smi
 
-installNamespace: true
+# -- Kubernetes DNS Domain name to use
 clusterDomain: cluster.local
 
+# SMI Adaptor configuration
 adaptor:
   image:
-    name: cr.l5d.io/linkerd/smi-adaptor
-    version: linkerdSMIVersionValue
+    # -- Docker registry for the adaptor instance
+    registry: cr.l5d.io/linkerd
+    # -- Docker image name for the adaptor instance
+    name: smi-adaptor
+    # -- Docker image tag for the adaptor instance
+    tag: linkerdSMIVersionValue
+    # -- Pull policy  for the adaptor instance
     pullPolicy: IfNotPresent
