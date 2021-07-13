@@ -32,7 +32,7 @@ if [ "$1" = package ]; then
     regex='v([0-9]+\.[0-9]+\.[0-9]+)'
     if [[ ! "$tag" =~ $regex ]]; then
         echo 'Version tag is malformed'
-                exit 1b
+                exit 1
     fi
     fullVersion=${BASH_REMATCH[0]}
     version=${BASH_REMATCH[1]}
