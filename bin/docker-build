@@ -8,11 +8,18 @@ if [ $# -ne 0 ]; then
 fi
 
 export DOCKER_REGISTRY=${DOCKER_REGISTRY:-cr.l5d.io/linkerd}
+
 # buildx cache directory
 export DOCKER_BUILDKIT_CACHE=${DOCKER_BUILDKIT_CACHE:-}
 
 # When set together with DOCKER_MULTIARCH, it will push the multi-arch images to the registry
 export DOCKER_PUSH=${DOCKER_PUSH:-}
+
+# build the multi-arch images
+export DOCKER_MULTIARCH=${DOCKER_MULTIARCH:-}
+
+# Default supported docker image architectures
+export SUPPORTED_ARCHS=${SUPPORTED_ARCHS:-linux/amd64,linux/arm64,linux/arm/v7}
 
 bindir=$( cd "${BASH_SOURCE[0]%/*}" && pwd )
 rootdir=$( cd "$bindir"/.. && pwd )
@@ -30,6 +37,10 @@ if [ -n "$DOCKER_PUSH" ]; then
     output_params+=" --push"
 else
     output_params+=" --load"
+fi
+
+if [ -n "$DOCKER_MULTIARCH" ]; then
+    output_params="--platform $SUPPORTED_ARCHS"
 fi
 
 # shellcheck disable=SC2086
