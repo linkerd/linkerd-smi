@@ -7,7 +7,7 @@ if [ $# -ne 0 ]; then
     exit 64
 fi
 
-export DOCKER_REGISTRY=${DOCKER_REGISTRY:-cr.l5d.io/linkerd}
+export DOCKER_REGISTRY=${DOCKER_REGISTRY:-ghcr.io/linkerd}
 
 # buildx cache directory
 export DOCKER_BUILDKIT_CACHE=${DOCKER_BUILDKIT_CACHE:-}
@@ -40,7 +40,7 @@ else
 fi
 
 if [ -n "$DOCKER_MULTIARCH" ]; then
-    output_params="--platform $SUPPORTED_ARCHS"
+    output_params+=" --platform $SUPPORTED_ARCHS"
 fi
 
 # shellcheck disable=SC2086

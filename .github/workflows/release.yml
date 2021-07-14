@@ -4,7 +4,7 @@ on:
     tags:
     - "*"
 permissions:
-  contents: read
+  contents: write
 env:
   GH_ANNOTATION: true
 jobs:
@@ -16,6 +16,9 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@722adc63f1aa60a57ec37892e133b1d319cae598
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '1.16.6'
     - name: Set environment variables from scripts
       run: |
         . bin/_tag.sh
@@ -49,10 +52,7 @@ jobs:
       env:
         ARCHIVES: /home/runner/archives
       run: |
-        mkdir -p $ARCHIVES/cli
-        mkdir -p $ARCHIVES/helm
-        cp -r target/cli/ $ARCHIVES
-        cp -r target/helm/ $ARCHIVES
+        cp -r ./target/. $ARCHIVES
     - name: Upload artifact
       uses: actions/upload-artifact@3446296876d12d4e3a0f3145a3c87e67bf0a16b5
       with:
@@ -93,7 +93,7 @@ jobs:
       run: |
         mkdir -p $HOME/.linkerd2/bin
         echo "$HOME/.linkerd2/bin" >> $GITHUB_PATH
-        cp build-archives/linkerd-smi-linux-amd64 "$HOME/.linkerd2/bin/linkerd-smi"
+        cp ./build-archives/cli/linkerd-smi-linux-amd64 "$HOME/.linkerd2/bin/linkerd-smi"
         chmod +x $HOME/.linkerd2/bin/linkerd-smi
     - name: Install the Linkerd CLI
       run : |
@@ -130,23 +130,7 @@ jobs:
         name: build-archives
     - name: Generate SHA256SUMS
       run: |
-        mkdir -p ./target/release
-        OS="darwin windows linux-amd64 darwin-arm64 linux-arm64 linux-arm"
-        for os in $OS; do
-          ext=$os
-          if [ "$os" = windows ]; then
-            ext=windows.exe
-          fi
-          filepath=./target/release/linkerd-smi-${{ env.TAG }}-$ext
-          cp "build-archives/linkerd-$os" "$filepath"
-          openssl dgst -sha256 "$filepath" | awk '{print $2}' > "$filepath.sha256"
-          echo "$filepath"
-        done
-
-        # generate for helm chart
-        mkdir -p ./target/helm
-        cp build-archives/linkerd-smi-${{ env.TAG }}.tgz ./target/helm
-        openssl dgst -sha256 build-archives/linkerd-smi-${{ env.TAG }}.tgz | awk '{print $2}' > "build-archives/linkerd-smi-$TAG.tgz.sha256"
+        ./bin/generate-sha256sums $TAG
     - name: Create release
       id: create_release
       uses: softprops/action-gh-release@91409e712cf565ce9eff10c87a8d1b11b81757ae
@@ -165,3 +149,29 @@ jobs:
           ./target/release/linkerd-smi-*-linux-*.sha256
           ./target/release/linkerd-smi-*-windows.exe
           ./target/release/linkerd-smi-*-windows.exe.sha256
+  chart_deploy:
+    name: Helm chart deploy
+    if: startsWith(github.ref, 'refs/tags/v')
+    timeout-minutes: 30
+    runs-on: ubuntu-20.04
+    needs: [gh_release]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+      with:
+        ref: gh-pages
+    - name: Download CLI archives
+      uses: actions/download-artifact@18f0f591fbc635562c815484d73b6e8e3980482e
+      with:
+        name: build-archives
+    - name: Helm chart creation and upload
+      run: |
+        chmod +x ./build-archives/bin/helm-v3.2.1
+        ./build-archives/bin/helm-v3.2.1 repo index --merge index.yaml build-archives/helm
+        mv build-archives/helm/index.yaml ./index.yaml
+        cp -r build-archives/helm/. ./
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add linkerd-smi-*.tgz index.yaml
+        git commit -sm "Add new Helm Chart"
+        git push

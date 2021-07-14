@@ -41,6 +41,7 @@ if [ "$1" = package ]; then
     setValues "linkerdSMIVersionValue" "$fullVersion"
 
     "$bindir"/helm --version "$version" --app-version "$tag" -d "$rootdir"/target/helm package "$rootdir"/charts/linkerd-smi
+    "$bindir"/helm repo index --url "https://linkerd.github.io/linkerd-smi/" "$rootdir"/target/helm
 
     # restore version in Values files
     setValues "$fullVersion" "linkerdSMIVersionValue"
