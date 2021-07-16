@@ -49,6 +49,7 @@ jobs:
         CLI_MULTIARCH: 1
       run: |
         bin/build-cli-bin
+        mkdir -p $ARCHIVES
         cp -r ./target/cli $ARCHIVES
     - name: Build SMI Helm Package
       run: |
@@ -84,6 +85,7 @@ jobs:
       uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60
       with:
         name: build-archives
+        path: build-archives
     - name: Create k8s Kind Cluster
       uses: engineerd/setup-kind@v0.5.0
       with:
@@ -124,6 +126,7 @@ jobs:
       uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60
       with:
         name: build-archives
+        path: build-archives
     - name: Generate SHA256SUMS
       run: |
         ./bin/generate-sha256sums $TAG
@@ -155,14 +158,17 @@ jobs:
       uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
       with:
         ref: gh-pages
+        fetch-depth: 0
     - name: Download CLI archives
       uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60
       with:
         name: build-archives
+        path: build-archives
+    - name: Install Helm
+      uses: azure/setup-helm@v1
     - name: Helm chart creation and upload
       run: |
-        chmod +x ./build-archives/bin/helm-v3.2.1
-        ./build-archives/bin/helm-v3.2.1 repo index --merge index.yaml build-archives/helm
+        helm repo index --merge index.yaml build-archives/helm
         mv build-archives/helm/index.yaml ./index.yaml
         cp -r build-archives/helm/. ./
         git config user.name github-actions
