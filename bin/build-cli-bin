@@ -20,12 +20,12 @@ export CLI_MULTIARCH=${CLI_MULTIARCH:-}
     root_tag=$("$bindir"/root-tag)
     GO_LDFLAGS="-s -w -X github.com/linkerd/linkerd-smi/pkg/version.Version=$root_tag"
     if [ -n "$CLI_MULTIARCH" ]; then
-        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $target/linkerd-smi-linux-amd64 -tags production -mod=readonly -ldflags "${GO_LDFLAGS}" ./cli
-        CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o $target/linkerd-smi-linux-arm64 -tags production -mod=readonly -ldflags "${GO_LDFLAGS}" ./cli
-        CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -o $target/linkerd-smi-linux-arm -tags production -mod=readonly -ldflags "${GO_LDFLAGS}" ./cli
-        CGO_ENABLED=0 GOOS=darwin go build -o $target/linkerd-smi-darwin -tags production -mod=readonly -ldflags "${GO_LDFLAGS}" ./cli
-        CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o $target/linkerd-smi-darwin-arm64 -tags production -mod=readonly -ldflags "${GO_LDFLAGS}" ./cli
-        CGO_ENABLED=0 GOOS=windows go build -o $target/linkerd-smi-windows -tags production -mod=readonly -ldflags "${GO_LDFLAGS}" ./cli
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o "$target"/linkerd-smi-linux-amd64 -tags production -mod=readonly -ldflags "${GO_LDFLAGS}" ./cli
+        CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o "$target"/linkerd-smi-linux-arm64 -tags production -mod=readonly -ldflags "${GO_LDFLAGS}" ./cli
+        CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -o "$target"/linkerd-smi-linux-arm -tags production -mod=readonly -ldflags "${GO_LDFLAGS}" ./cli
+        CGO_ENABLED=0 GOOS=darwin go build -o "$target"/linkerd-smi-darwin -tags production -mod=readonly -ldflags "${GO_LDFLAGS}" ./cli
+        CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o "$target"/linkerd-smi-darwin-arm64 -tags production -mod=readonly -ldflags "${GO_LDFLAGS}" ./cli
+        CGO_ENABLED=0 GOOS=windows go build -o "$target"/linkerd-smi-windows -tags production -mod=readonly -ldflags "${GO_LDFLAGS}" ./cli
     else
         CGO_ENABLED=0 GOOS=$(os) GOARCH=$(arch) go build -o "$target/linkerd-smi-$(os)-$(arch)" -tags production -mod=readonly -ldflags "${GO_LDFLAGS}" ./cli
         echo "$target/linkerd-smi-$(os)-$(arch)"

@@ -25,5 +25,5 @@ for os in $OS; do
 done
 
 # generate for helm chart
-cp build-archives/helm/linkerd-smi-$shorttag.tgz ./target/release
+cp build-archives/helm/linkerd-smi-"$shorttag".tgz ./target/release
 openssl dgst -sha256 ./target/release/linkerd-smi-"$shorttag".tgz | awk '{print $2}' > "./target/release/linkerd-smi-$shorttag.tgz.sha256"
