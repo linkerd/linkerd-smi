@@ -103,7 +103,8 @@ jobs:
       if: ${{ matrix.test == 'helm' }}
       run: |
           projectdir=$(pwd)
-          go test --failfast --mod=readonly "./test" --linkerd="$HOME/.linkerd2/bin/linkerd" --helm-path="$projectdir/bin/helm" --smi-helm-chart="$projectdir/charts/linkerd-smi" --smi-helm-version="$TAG" --integration-tests
+          shorttag="${TAG#v}"
+          go test --failfast --mod=readonly "./test" --linkerd="$HOME/.linkerd2/bin/linkerd" --helm-path="$projectdir/bin/helm" --smi-helm-chart="$projectdir/build-archives/helm/linkerd-smi-$shorttag.tgz" --integration-tests
     - name: Run CLI Integration Tests
       if: ${{ matrix.test == 'cli' }}
       run: |
