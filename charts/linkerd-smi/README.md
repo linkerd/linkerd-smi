@@ -66,7 +66,7 @@ Kubernetes: `>=1.16.0-0`
 |-----|------|---------|-------------|
 | adaptor.image.name | string | `"smi-adaptor"` | Docker image name for the adaptor instance |
 | adaptor.image.pullPolicy | string | `"IfNotPresent"` | Pull policy  for the adaptor instance |
-| adaptor.image.registry | string | `"ghcr.io/linkerd"` | Docker registry for the adaptor instance |
+| adaptor.image.registry | string | `"cr.l5d.io/linkerd"` | Docker registry for the adaptor instance |
 | adaptor.image.tag | string | `"linkerdSMIVersionValue"` | Docker image tag for the adaptor instance |
 | clusterDomain | string | `"cluster.local"` | Kubernetes DNS Domain name to use |
 | installNamespace | bool | `true` | Set to false when installing in a custom namespace |

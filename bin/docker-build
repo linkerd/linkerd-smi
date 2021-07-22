@@ -7,7 +7,7 @@ if [ $# -ne 0 ]; then
     exit 64
 fi
 
-export DOCKER_REGISTRY=${DOCKER_REGISTRY:-ghcr.io/linkerd}
+export DOCKER_REGISTRY=${DOCKER_REGISTRY:-cr.l5d.io/linkerd}
 
 # buildx cache directory
 export DOCKER_BUILDKIT_CACHE=${DOCKER_BUILDKIT_CACHE:-}

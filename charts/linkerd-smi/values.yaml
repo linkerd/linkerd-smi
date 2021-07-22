@@ -11,7 +11,7 @@ clusterDomain: cluster.local
 adaptor:
   image:
     # -- Docker registry for the adaptor instance
-    registry: ghcr.io/linkerd
+    registry: cr.l5d.io/linkerd
     # -- Docker image name for the adaptor instance
     name: smi-adaptor
     # -- Docker image tag for the adaptor instance
