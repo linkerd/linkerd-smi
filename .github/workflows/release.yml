@@ -1,0 +1,179 @@
+name: Release
+on:
+  push:
+    tags:
+    - "v*"
+permissions:
+  contents: write
+env:
+  GH_ANNOTATION: true
+  DOCKER_REGISTRY: ghcr.io/linkerd
+jobs:
+  docker_build:
+    runs-on: ubuntu-20.04
+    name: Build SMI Extension
+    timeout-minutes: 30
+    env:
+      ARCHIVES: /home/runner/archives
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+    - uses: actions/setup-go@37335c7bb261b353407cff977110895fa0b4f7d8
+      with:
+        go-version: '1.16.6'
+    - name: Set environment variables from scripts
+      run: |
+        echo "TAG=$(CI_FORCE_CLEAN=1 bin/root-tag)" >> $GITHUB_ENV
+        echo "DOCKER_BUILDKIT_CACHE=${{ runner.temp }}/.buildx-cache" >> $GITHUB_ENV
+    - name: Cache docker layers
+      uses: actions/cache@c64c572235d810460d0d6876e9c705ad5002b353
+      with:
+        path: ${{ env.DOCKER_BUILDKIT_CACHE }}
+        key: ${{ runner.os }}-buildx-smi-${{ env.TAG }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-smi-
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@27d0a4f181a40b142cce983c5393082c365d1480
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@abe5d8f79a1606a2d3e218847032f3f2b1726ab0
+    - name: Build SMI docker image
+      env:
+        DOCKER_MULTIARCH: 1
+        # Need to push here instead for multi-arch image push to work
+        DOCKER_PUSH: 1
+      run: |
+        echo "${{ secrets.DOCKER_GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.DOCKER_GHCR_USERNAME }}" --password-stdin
+        bin/docker-build
+    - name: Build SMI CLI
+      env:
+        CLI_MULTIARCH: 1
+      run: |
+        bin/build-cli-bin
+        mkdir -p $ARCHIVES
+        cp -r ./target/cli $ARCHIVES
+    - name: Build SMI Helm Package
+      run: |
+        bin/helm-build package
+        cp -r ./target/helm $ARCHIVES
+    - name: Upload artifact
+      uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074
+      with:
+        name: build-archives
+        path: /home/runner/archives
+  integration_tests:
+    needs: [docker_build]
+    runs-on: ubuntu-20.04
+    timeout-minutes: 60
+    name: Integration tests
+    strategy:
+      matrix:
+        test: [helm, cli]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+    - name: Set environment variables from scripts
+      run: |
+        echo "TAG=$(CI_FORCE_CLEAN=1 bin/root-tag)" >> $GITHUB_ENV
+    - name: Try to load cached Go modules
+      uses: actions/cache@c64c572235d810460d0d6876e9c705ad5002b353
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    - name: Download image archives
+      uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60
+      with:
+        name: build-archives
+        path: build-archives
+    - name: Create k8s Kind Cluster
+      uses: engineerd/setup-kind@v0.5.0
+      with:
+        version: "v0.11.1"
+    - name: Load the SMI extension CLI and Images
+      run: |
+        mkdir -p $HOME/.linkerd2/bin
+        echo "$HOME/.linkerd2/bin" >> $GITHUB_PATH
+        cp ./build-archives/cli/linkerd-smi-linux-amd64 "$HOME/.linkerd2/bin/linkerd-smi"
+        chmod +x $HOME/.linkerd2/bin/linkerd-smi
+    - name: Install the Linkerd CLI
+      run : |
+        curl -sL https://run.linkerd.io/install-edge | sh
+    - name: Run Helm Integration Tests
+      if: ${{ matrix.test == 'helm' }}
+      run: |
+          projectdir=$(pwd)
+          shorttag="${TAG#v}"
+          go test --failfast --mod=readonly "./test" --linkerd="$HOME/.linkerd2/bin/linkerd" --helm-path="$projectdir/bin/helm" --smi-helm-chart="$projectdir/build-archives/helm/linkerd-smi-$shorttag.tgz" --integration-tests
+    - name: Run CLI Integration Tests
+      if: ${{ matrix.test == 'cli' }}
+      run: |
+        go test --failfast --mod=readonly "./test" --linkerd="$HOME/.linkerd2/bin/linkerd" --integration-tests
+  gh_release:
+    name: Create GH release
+    timeout-minutes: 30
+    runs-on: ubuntu-20.04
+    needs: [integration_tests]
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+    - name: Set environment variables from scripts
+      run: |
+        echo "TAG=$(CI_FORCE_CLEAN=1 bin/root-tag)" >> $GITHUB_ENV
+        bin/extract-release-notes NOTES.md
+    - name: Download CLI archives
+      uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60
+      with:
+        name: build-archives
+        path: build-archives
+    - name: Generate SHA256SUMS
+      run: |
+        ./bin/generate-sha256sums $TAG
+    - name: Create release
+      id: create_release
+      uses: softprops/action-gh-release@91409e712cf565ce9eff10c87a8d1b11b81757ae
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        draft: false
+        prerelease: false
+        body_path: NOTES.md
+        files: |
+          ./target/release/linkerd-smi-*.tgz
+          ./target/release/linkerd-smi-*.tgz.sha256
+          ./target/release/linkerd-smi-*-darwin*
+          ./target/release/linkerd-smi-*-darwin*.sha256
+          ./target/release/linkerd-smi-*-linux-*
+          ./target/release/linkerd-smi-*-linux-*.sha256
+          ./target/release/linkerd-smi-*-windows.exe
+          ./target/release/linkerd-smi-*-windows.exe.sha256
+  chart_deploy:
+    name: Helm chart deploy
+    timeout-minutes: 30
+    runs-on: ubuntu-20.04
+    needs: [gh_release]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+      with:
+        ref: gh-pages
+        fetch-depth: 0
+    - name: Download CLI archives
+      uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60
+      with:
+        name: build-archives
+        path: build-archives
+    - name: Install Helm
+      uses: azure/setup-helm@18bc76811624f360dbd7f18c2d4ecb32c7b87bab
+    - name: Helm chart creation and upload
+      run: |
+        helm repo index --merge index.yaml build-archives/helm
+        mv build-archives/helm/index.yaml ./index.yaml
+        cp -r build-archives/helm/. ./
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add linkerd-smi-*.tgz index.yaml
+        git commit -sm "Add new Helm Chart"
+        git push

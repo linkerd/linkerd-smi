@@ -132,8 +132,10 @@ func TestSMIAdaptorWithHelm(t *testing.T) {
 	}
 
 	// Install SMI Extension
-	smiArgs := []string{
-		"--set", "adaptor.image.tag=" + TestHelper.GetSMIHelmVersion(),
+	// Use the version if it is passed
+	var smiArgs []string
+	if TestHelper.GetSMIHelmVersion() != "" {
+		smiArgs = append(smiArgs, []string{"--set", "adaptor.image.tag=" + TestHelper.GetSMIHelmVersion()}...)
 	}
 
 	if stdout, stderr, err := TestHelper.HelmInstall(TestHelper.GetSMIHelmChart(), "linkerd-smi", smiArgs...); err != nil {

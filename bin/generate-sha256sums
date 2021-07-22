@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+set -eu
+
+if [ $# -eq 1 ]; then
+    tag=${1:-}
+else
+    echo "usage: ${0##*/} tag" >&2
+    exit 64
+fi
+
+mkdir -p ./target/release
+# strip out v in the tag
+shorttag="${tag#v}"
+OS="darwin windows linux-amd64 darwin-arm64 linux-arm64 linux-arm"
+for os in $OS; do
+    ext=$os
+    if [ "$os" = windows ]; then
+        ext=windows.exe
+    fi
+    filepath=./target/release/linkerd-smi-"$shorttag"-$ext
+    cp "build-archives/cli/linkerd-smi-$os" "$filepath"
+    openssl dgst -sha256 "$filepath" | awk '{print $2}' > "$filepath.sha256"
+    echo "$filepath"
+done
+
+# generate for helm chart
+cp build-archives/helm/linkerd-smi-"$shorttag".tgz ./target/release
+openssl dgst -sha256 ./target/release/linkerd-smi-"$shorttag".tgz | awk '{print $2}' > "./target/release/linkerd-smi-$shorttag.tgz.sha256"
