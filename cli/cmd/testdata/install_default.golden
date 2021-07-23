@@ -34,7 +34,7 @@ spec:
       - args:
         - smi-adaptor
         - -cluster-domain=cluster.local
-        image: ghcr.io/linkerd/smi-adaptor:dev-undefined
+        image: cr.l5d.io/linkerd/smi-adaptor:dev-undefined
         imagePullPolicy: IfNotPresent
         name: smi-adaptor
         ports:
