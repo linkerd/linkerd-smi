@@ -7,7 +7,6 @@ permissions:
   contents: write
 env:
   GH_ANNOTATION: true
-  DOCKER_REGISTRY: ghcr.io/linkerd
 jobs:
   docker_build:
     runs-on: ubuntu-20.04
@@ -24,6 +23,7 @@ jobs:
     - name: Set environment variables from scripts
       run: |
         echo "TAG=$(CI_FORCE_CLEAN=1 bin/root-tag)" >> $GITHUB_ENV
+        echo "DOCKER_REGISTRY=ghcr.io/linkerd" >> $GITHUB_ENV
         echo "DOCKER_BUILDKIT_CACHE=${{ runner.temp }}/.buildx-cache" >> $GITHUB_ENV
     - name: Cache docker layers
       uses: actions/cache@c64c572235d810460d0d6876e9c705ad5002b353
