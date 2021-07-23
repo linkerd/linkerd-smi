@@ -1,1 +1,24 @@
 apiVersion: v1
+entries:
+  linkerd-smi:
+  - apiVersion: v1
+    appVersion: v0.1.0
+    created: "2021-07-23T17:36:51.630341132Z"
+    description: 'The Linkerd-SMI extension adds SMI adaptor to the Linkerd install '
+    digest: 41a713d154c6543c752f5e6c25e954d7c5f82a79f3f5407b6cc06b4acd27e3ac
+    home: https://linkerd.io
+    icon: https://linkerd.io/images/logo-only-200h.png
+    keywords:
+    - service-mesh
+    kubeVersion: '>=1.16.0-0'
+    maintainers:
+    - email: cncf-linkerd-dev@lists.cncf.io
+      name: Linkerd authors
+      url: https://linkerd.io/
+    name: linkerd-smi
+    sources:
+    - https://github.com/linkerd/linkerd-smi/
+    urls:
+    - linkerd-smi-0.1.0.tgz
+    version: 0.1.0
+generated: "2021-07-23T17:36:51.629620799Z"
