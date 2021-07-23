@@ -27,7 +27,6 @@ jobs:
         . bin/_tag.sh
         echo "TAG=$(CI_FORCE_CLEAN=1 bin/root-tag)" >> $GITHUB_ENV
 
-        echo "DOCKER_REGISTRY=cr.l5d.io/linkerd" >> $GITHUB_ENV
         echo "DOCKER_BUILDKIT_CACHE=${{ runner.temp }}/.buildx-cache" >> $GITHUB_ENV
     - name: Cache docker layers
       uses: actions/cache@b8204782bbb5f872091ecc5eb9cb7d004e35b1fa
