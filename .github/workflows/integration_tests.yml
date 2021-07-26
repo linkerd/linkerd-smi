@@ -1,9 +1,6 @@
 name: Integration tests
 on:
-  pull_request:
-    paths-ignore:
-    - '*.md'
-    - '**/*.md'
+  pull_request: {}
   push:
     paths-ignore:
     - '*.md'
@@ -21,24 +18,25 @@ jobs:
     timeout-minutes: 30
     steps:
     - name: Checkout code
-      uses: actions/checkout@722adc63f1aa60a57ec37892e133b1d319cae598
+      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
     - name: Set environment variables from scripts
       run: |
         . bin/_tag.sh
         echo "TAG=$(CI_FORCE_CLEAN=1 bin/root-tag)" >> $GITHUB_ENV
-
         echo "DOCKER_BUILDKIT_CACHE=${{ runner.temp }}/.buildx-cache" >> $GITHUB_ENV
     - name: Cache docker layers
-      uses: actions/cache@b8204782bbb5f872091ecc5eb9cb7d004e35b1fa
+      uses: actions/cache@c64c572235d810460d0d6876e9c705ad5002b353
       with:
         path: ${{ env.DOCKER_BUILDKIT_CACHE }}
         key: ${{ runner.os }}-buildx-smi-${{ env.TAG }}
         restore-keys: |
           ${{ runner.os }}-buildx-smi-
-    - name: Build SMI docker images and CLI
+    - name: Build SMI docker image
       run: |
         docker buildx create --driver docker-container --use
         bin/docker-build
+    - name: Build SMI CLI
+      run: |
         bin/build-cli-bin
     - name: Create artifact with CLI and image archives
       env:
@@ -48,7 +46,7 @@ jobs:
         docker save "cr.l5d.io/linkerd/smi-adaptor:$TAG" > $ARCHIVES/smi-adaptor.tar
         cp target/cli/linkerd-smi-linux-amd64 $ARCHIVES
     - name: Upload artifact
-      uses: actions/upload-artifact@3446296876d12d4e3a0f3145a3c87e67bf0a16b5
+      uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074
       with:
         name: build-archives
         path: /home/runner/archives
@@ -65,19 +63,19 @@ jobs:
       uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
     - name: Set environment variables from scripts
       run: |
-        . bin/_tag.sh
         echo "TAG=$(CI_FORCE_CLEAN=1 bin/root-tag)" >> $GITHUB_ENV
     - name: Try to load cached Go modules
-      uses: actions/cache@70655ec8323daeeaa7ef06d7c56e1b9191396cbe
+      uses: actions/cache@c64c572235d810460d0d6876e9c705ad5002b353
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-
     - name: Download image archives
-      uses: actions/download-artifact@18f0f591fbc635562c815484d73b6e8e3980482e
+      uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60
       with:
         name: build-archives
+        path: build-archives
     - name: Create k8s Kind Cluster
       uses: engineerd/setup-kind@v0.5.0
       with:
