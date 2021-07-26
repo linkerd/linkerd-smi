@@ -115,18 +115,16 @@ jobs:
     runs-on: ubuntu-20.04
     needs: [integration_tests]
     outputs:
-      tag: ${{ steps.set-env.outputs.tag}}
+      tag: ${{ steps.set-env.outputs.tag }}
     permissions:
       contents: write
     steps:
     - name: Checkout code
       uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
-    - id: set-env
-      name: Set environment variables from scripts
+    - name: Set environment variables from scripts
       run: |
         echo "TAG=$(CI_FORCE_CLEAN=1 bin/root-tag)" >> $GITHUB_ENV
         bin/extract-release-notes NOTES.md
-        echo "::set-output name=tag::$TAG"
     - name: Download CLI archives
       uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60
       with:
@@ -135,6 +133,8 @@ jobs:
     - name: Generate SHA256SUMS
       run: |
         ./bin/generate-sha256sums $TAG
+    - id: set-env
+      run: echo "::set-output name=tag::$(echo $TAG)"
     - name: Create release
       id: create_release
       uses: softprops/action-gh-release@91409e712cf565ce9eff10c87a8d1b11b81757ae
@@ -180,6 +180,6 @@ jobs:
         sed -i 's/LINKERD_SMI_VERSION:-.*/LINKERD_SMI_VERSION:-"${{needs.gh_release.outputs.tag}}"}/' ./install
         git config user.name github-actions
         git config user.email github-actions@github.com
-        git add linkerd-smi-*.tgz index.yaml
+        git add linkerd-smi-*.tgz index.yaml install
         git commit -sm "Add new Helm Chart"
         git push
