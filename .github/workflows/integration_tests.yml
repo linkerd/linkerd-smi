@@ -36,8 +36,7 @@ jobs:
         docker buildx create --driver docker-container --use
         bin/docker-build
     - name: Build SMI CLI
-      run: |
-        bin/build-cli-bin
+      run: bin/build-cli-bin
     - name: Create artifact with CLI and image archives
       env:
         ARCHIVES: /home/runner/archives
