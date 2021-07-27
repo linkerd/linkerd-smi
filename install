@@ -1,0 +1,140 @@
+#!/bin/sh
+
+set -eu
+
+LINKERD_SMI_VERSION=${LINKERD_SMI_VERSION:-"v0.1.0"}
+INSTALLROOT=${INSTALLROOT:-"${HOME}/.linkerd2"}
+
+happyexit() {
+  echo ""
+  echo "Add the linkerd bin folder to your path with:"
+  echo ""
+  echo "  export PATH=\$PATH:${INSTALLROOT}/bin"
+  echo ""
+  echo "Now run:"
+  echo ""
+  echo "  linkerd smi install | kubectl apply -f -   # install the SMI extension"
+  echo "  linkerd smi check                          # validate everything worked!"
+  echo ""
+  exit 0
+}
+
+validate_checksum() {
+  filename=$1
+  SHA=$(curl -sfL "${url}.sha256")
+  echo ""
+  echo "Validating checksum..."
+
+  case $checksumbin in
+    *openssl)
+      checksum=$($checksumbin dgst -sha256 "${filename}" | sed -e 's/^.* //')
+      ;;
+    *shasum)
+      checksum=$($checksumbin -a256 "${filename}" | sed -e 's/^.* //')
+      ;;
+  esac
+
+  if [ "$checksum" != "$SHA" ]; then
+    echo "Checksum validation failed." >&2
+    return 1
+  fi
+  echo "Checksum valid."
+  return 0
+}
+
+OS=$(uname -s)
+arch=$(uname -m)
+cli_arch=""
+case $OS in
+  CYGWIN* | MINGW64*)
+    OS=windows.exe
+    ;;
+  Darwin)
+    ;;
+  Linux)
+    case $arch in
+      x86_64)
+        cli_arch=amd64
+        ;;
+      armv8*)
+        cli_arch=arm64
+        ;;
+      aarch64*)
+        cli_arch=arm64
+        ;;
+      armv*)
+        cli_arch=arm
+        ;;
+      amd64|arm64)
+        cli_arch=$arch
+        ;;
+      *)
+        echo "There is no linkerd-smi $OS support for $arch. Please open an issue with your platform details."
+        exit 1
+        ;;
+    esac
+    ;;
+  *)
+    echo "There is no linkerd-smi support for $OS/$arch. Please open an issue with your platform details."
+    exit 1
+    ;;
+esac
+OS=$(echo $OS | tr '[:upper:]' '[:lower:]')
+
+checksumbin=$(command -v openssl) || checksumbin=$(command -v shasum) || {
+  echo "Failed to find checksum binary. Please install openssl or shasum."
+  exit 1
+}
+
+
+tmpdir=$(mktemp -d /tmp/linkerd-smi.XXXXXX)
+shorttag="${LINKERD_SMI_VERSION#v}"
+srcfile="linkerd-smi-${shorttag}-${OS}"
+if [ -n "${cli_arch}" ]; then
+  srcfile="${srcfile}-${cli_arch}"
+fi
+dstfile="${INSTALLROOT}/bin/linkerd-smi-${LINKERD_SMI_VERSION}"
+url="https://github.com/linkerd/linkerd-smi/releases/download/${LINKERD_SMI_VERSION}/${srcfile}"
+
+if [ -e "${dstfile}" ]; then
+  if validate_checksum "${dstfile}"; then
+    echo ""
+    echo "Linkerd SMI ${LINKERD_SMI_VERSION} was already downloaded; making it the default 🎉"
+    echo ""
+    echo "To force re-downloading, delete '${dstfile}' then run me again."
+    (
+      rm -f "${INSTALLROOT}/bin/linkerd-smi"
+      ln -s "${dstfile}" "${INSTALLROOT}/bin/linkerd-smi"
+    )
+    happyexit
+  fi
+fi
+
+(
+  cd "$tmpdir"
+
+  echo "Downloading ${srcfile}..."
+  echo $url
+  curl -fLO "${url}"
+  echo "Download complete!"
+
+  if ! validate_checksum "${srcfile}"; then
+    exit 1
+  fi
+  echo ""
+)
+
+(
+  mkdir -p "${INSTALLROOT}/bin"
+  mv "${tmpdir}/${srcfile}" "${dstfile}"
+  chmod +x "${dstfile}"
+  rm -f "${INSTALLROOT}/bin/linkerd-smi"
+  ln -s "${dstfile}" "${INSTALLROOT}/bin/linkerd-smi"
+)
+
+
+rm -r "$tmpdir"
+
+echo "Linkerd SMI ${LINKERD_SMI_VERSION} was successfully installed 🎉"
+echo ""
+happyexit
