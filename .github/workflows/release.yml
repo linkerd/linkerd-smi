@@ -181,5 +181,5 @@ jobs:
         git config user.name github-actions
         git config user.email github-actions@github.com
         git add linkerd-smi-*.tgz index.yaml install
-        git commit -sm "Add new Helm Chart"
+        git commit -sm "Add new Helm Chart ${{ needs.gh_release.outputs.tag }}"
         git push
