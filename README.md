@@ -19,9 +19,7 @@ This repo consists of two components:
 
 To install the CLI, run:
 
-```bash
-curl -sL https://linkerd.github.io/linkerd-smi/install | sh   
-```
+    curl -sL https://linkerd.github.io/linkerd-smi/install | sh
 
 Alternatively, you can download the CLI directly via the
 [releases page](https://github.com/linkerd/linkerd-smi/releases).
@@ -30,13 +28,8 @@ Alternatively, you can download the CLI directly via the
 
 To install the linkerd-smi Helm chart, run:
 
-```bash
-# add `linkerd-smi` helm repo
-helm repo add l5d-smi https://linkerd.github.io/linkerd-smi
-
-# install the chart
-helm install l5d-smi/linkerd-smi --generate-name
-```
+    helm repo add l5d-smi https://linkerd.github.io/linkerd-smi
+    helm install l5d-smi/linkerd-smi --generate-name
 
 ## License
 
