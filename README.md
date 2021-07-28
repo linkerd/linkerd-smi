@@ -13,6 +13,24 @@ This repo consists of two components:
   resources into Linkerd native resources.
 - `cli`: Runs locally or wherever you install the Linkerd CLI.
 
+## Installation
+
+### CLI
+
+To install the CLI, run:
+
+    curl -sL https://linkerd.github.io/linkerd-smi/install | sh
+
+Alternatively, you can download the CLI directly via the
+[releases page](https://github.com/linkerd/linkerd-smi/releases).
+
+### Helm
+
+To install the linkerd-smi Helm chart, run:
+
+    helm repo add l5d-smi https://linkerd.github.io/linkerd-smi
+    helm install l5d-smi/linkerd-smi --generate-name
+
 ## License
 
 Copyright 2021 the Linkerd Authors. All rights reserved.
