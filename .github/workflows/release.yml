@@ -114,6 +114,8 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-20.04
     needs: [integration_tests]
+    outputs:
+      tag: ${{ steps.set-env.outputs.tag }}
     permissions:
       contents: write
     steps:
@@ -131,6 +133,8 @@ jobs:
     - name: Generate SHA256SUMS
       run: |
         ./bin/generate-sha256sums $TAG
+    - id: set-env
+      run: echo "::set-output name=tag::$(echo $TAG)"
     - name: Create release
       id: create_release
       uses: softprops/action-gh-release@91409e712cf565ce9eff10c87a8d1b11b81757ae
@@ -172,8 +176,10 @@ jobs:
         helm repo index --merge index.yaml build-archives/helm
         mv build-archives/helm/index.yaml ./index.yaml
         cp -r build-archives/helm/. ./
+        # update version in install script
+        sed -i 's/LINKERD_SMI_VERSION:-.*/LINKERD_SMI_VERSION:-"${{needs.gh_release.outputs.tag}}"}/' ./install
         git config user.name github-actions
         git config user.email github-actions@github.com
-        git add linkerd-smi-*.tgz index.yaml
-        git commit -sm "Add new Helm Chart"
+        git add linkerd-smi-*.tgz index.yaml install
+        git commit -sm "Add new Helm Chart ${{ needs.gh_release.outputs.tag }}"
         git push
