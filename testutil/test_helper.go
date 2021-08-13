@@ -122,7 +122,7 @@ func (h *TestHelper) GetSMIHelmVersion() string {
 	return h.helm.smiVersion
 }
 
-// GetSMIVersion returns the namespace in which linkerd-smi is installed
+// GetSMINamespace returns the namespace in which linkerd-smi is installed
 func (h *TestHelper) GetSMINamespace() string {
 	return "linkerd-smi"
 }
