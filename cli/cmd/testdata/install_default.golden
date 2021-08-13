@@ -5,8 +5,6 @@ metadata:
   name: linkerd-smi
   labels:
     linkerd.io/extension: smi
-  annotations:
-    linkerd.io/inject: enabled
 ---
 apiVersion: apps/v1
 kind: Deployment

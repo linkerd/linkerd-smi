@@ -26,6 +26,7 @@ var (
 		"templates/namespace.yaml",
 		"templates/adaptor.yaml",
 		"templates/rbac.yaml",
+		"templates/_metadata.tpl",
 	}
 )
 
@@ -120,8 +121,16 @@ func render(w io.Writer, valuesOverrides map[string]interface{}) error {
 		return err
 	}
 
+	fullValues := map[string]interface{}{
+		"Values": vals,
+		"Release": map[string]interface{}{
+			"Namespace": defaultSMINamespace,
+			"Service":   "CLI",
+		},
+	}
+
 	// Attach the final values into the `Values` field for rendering to work
-	renderedTemplates, err := engine.Render(chart, map[string]interface{}{"Values": vals})
+	renderedTemplates, err := engine.Render(chart, fullValues)
 	if err != nil {
 		return err
 	}

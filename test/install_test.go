@@ -135,7 +135,11 @@ func TestSMIAdaptorWithHelm(t *testing.T) {
 	// Use the version if it is passed
 	var smiArgs []string
 	if TestHelper.GetSMIHelmVersion() != "" {
-		smiArgs = append(smiArgs, []string{"--set", "adaptor.image.tag=" + TestHelper.GetSMIHelmVersion()}...)
+		smiArgs = append(smiArgs, []string{
+			"--set", "adaptor.image.tag=" + TestHelper.GetSMIHelmVersion(),
+			"--namespace", TestHelper.GetSMINamespace(),
+			"--create-namespace",
+		}...)
 	}
 
 	if stdout, stderr, err := TestHelper.HelmInstall(TestHelper.GetSMIHelmChart(), "linkerd-smi", smiArgs...); err != nil {

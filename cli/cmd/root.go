@@ -12,6 +12,7 @@ import (
 
 const (
 	defaultLinkerdNamespace = "linkerd"
+	defaultSMINamespace     = "linkerd-smi"
 
 	smiExtensionName = "smi"
 )
