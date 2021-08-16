@@ -2,14 +2,13 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   annotations:
-    {{ include "partials.annotations.created-by" . }}
     "helm.sh/hook": post-install
     "helm.sh/hook-weight": "0"
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
   labels:
     app.kubernetes.io/name: namespace-metadata
-    app.kubernetes.io/part-of: Linkerd
-    app.kubernetes.io/version: {{default .Values.linkerdVersion .Values.cliVersion}}
+    app.kubernetes.io/part-of: linkerd-smi
+    app.kubernetes.io/version: {{.Values.adaptor.image.tag}}
   name: namespace-metadata
 spec:
   template:
@@ -18,8 +17,8 @@ spec:
         {{ include "partials.annotations.created-by" . }}
       labels:
         app.kubernetes.io/name: namespace-metadata
-        app.kubernetes.io/part-of: Linkerd
-        app.kubernetes.io/version: {{default .Values.linkerdVersion .Values.cliVersion}}
+        app.kubernetes.io/part-of: linkerd-smi
+        app.kubernetes.io/version: {{.Values.adaptor.image.tag}}
     spec:
       restartPolicy: Never
       serviceAccountName: namespace-metadata
