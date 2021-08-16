@@ -137,8 +137,6 @@ func TestSMIAdaptorWithHelm(t *testing.T) {
 	if TestHelper.GetSMIHelmVersion() != "" {
 		smiArgs = append(smiArgs, []string{
 			"--set", "adaptor.image.tag=" + TestHelper.GetSMIHelmVersion(),
-			"--namespace", TestHelper.GetSMINamespace(),
-			"--create-namespace",
 		}...)
 	}
 

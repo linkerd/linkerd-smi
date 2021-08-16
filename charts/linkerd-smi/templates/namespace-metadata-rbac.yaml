@@ -1,4 +1,4 @@
-ind: ServiceAccount
+kind: ServiceAccount
 apiVersion: v1
 metadata:
   annotations:
