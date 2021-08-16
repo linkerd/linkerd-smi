@@ -13,8 +13,6 @@ metadata:
 spec:
   template:
     metadata:
-      annotations:
-        {{ include "partials.annotations.created-by" . }}
       labels:
         app.kubernetes.io/name: namespace-metadata
         app.kubernetes.io/part-of: linkerd-smi
