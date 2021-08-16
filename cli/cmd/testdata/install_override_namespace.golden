@@ -53,6 +53,9 @@ metadata:
     linkerd.io/extension: smi
     component: smi-adaptor
 rules:
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create", "patch"]
 - apiGroups: ["linkerd.io"]
   resources: ["serviceprofiles"]
   verbs: ["list", "get", "create", "update"]
