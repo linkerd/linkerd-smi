@@ -9,13 +9,17 @@ import (
 	spclientset "github.com/linkerd/linkerd2/controller/gen/client/clientset/versioned"
 	trafficsplit "github.com/servicemeshinterface/smi-sdk-go/pkg/apis/split/v1alpha1"
 	tsclientset "github.com/servicemeshinterface/smi-sdk-go/pkg/gen/client/split/clientset/versioned"
+	tsscheme "github.com/servicemeshinterface/smi-sdk-go/pkg/gen/client/split/clientset/versioned/scheme"
 	informers "github.com/servicemeshinterface/smi-sdk-go/pkg/gen/client/split/informers/externalversions/split/v1alpha1"
 	log "github.com/sirupsen/logrus"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
+	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
 )
 
@@ -24,6 +28,8 @@ const (
 	// ignoreServiceProfileAnnotation is used with Service Profiles
 	// to prevent the SMI adaptor from changing it
 	ignoreServiceProfileAnnotation = "smi.linkerd.io/skip"
+
+	component = "smi-controller"
 )
 
 type (
@@ -58,6 +64,9 @@ type SMIController struct {
 	// workers is the number of concurrent goroutines
 	// to process items from the workqueue
 	workers int
+
+	// tsEventRecorder is used to generate events on the TrafficSplits
+	tsEventRecorder record.EventRecorder
 }
 
 // NewController returns a new SMI controller
@@ -69,14 +78,20 @@ func NewController(
 	tsInformer informers.TrafficSplitInformer,
 	numberOfWorkers int) *SMIController {
 
+	eventBroadcaster := record.NewBroadcaster()
+	eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{
+		Interface: kubeclientset.CoreV1().Events(""),
+	})
+
 	controller := &SMIController{
-		kubeclientset: kubeclientset,
-		clusterDomain: clusterDomain,
-		tsclientset:   tsclientset,
-		tsSynced:      tsInformer.Informer().HasSynced,
-		spclientset:   spclientset,
-		workqueue:     workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "TrafficSplits"),
-		workers:       numberOfWorkers,
+		kubeclientset:   kubeclientset,
+		clusterDomain:   clusterDomain,
+		tsclientset:     tsclientset,
+		tsSynced:        tsInformer.Informer().HasSynced,
+		spclientset:     spclientset,
+		workqueue:       workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "TrafficSplits"),
+		workers:         numberOfWorkers,
+		tsEventRecorder: eventBroadcaster.NewRecorder(tsscheme.Scheme, corev1.EventSource{Component: component}),
 	}
 
 	// Set up an event handler for when Ts resources change
@@ -257,6 +272,7 @@ func (c *SMIController) syncHandler(ctx context.Context, tsKey trafficSplitKey) 
 		if err != nil {
 			return err
 		}
+		c.tsEventRecorder.Eventf(ts, corev1.EventTypeNormal, "Created", "Created Service Profile %s", sp.Name)
 		log.Infof("created serviceprofile/%s for trafficsplit/%s", sp.Name, ts.Name)
 	} else {
 		log.Infof("serviceprofile/%s already present", sp.Name)
@@ -271,6 +287,7 @@ func (c *SMIController) syncHandler(ctx context.Context, tsKey trafficSplitKey) 
 		if err != nil {
 			return err
 		}
+		c.tsEventRecorder.Eventf(ts, corev1.EventTypeNormal, "Updated", "Updated Service Profile %s", sp.Name)
 		log.Infof("updated serviceprofile/%s", sp.Name)
 	}
 
