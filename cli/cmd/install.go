@@ -27,6 +27,7 @@ var (
 		"templates/adaptor.yaml",
 		"templates/rbac.yaml",
 		"templates/_metadata.tpl",
+		"templates/trafficsplit-crd.yaml",
 	}
 )
 
