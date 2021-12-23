@@ -1,9 +1,3 @@
-# -- Set to false when installing in a custom namespace
-installNamespace: true
-
-# -- Namespace in which to install the SMI extension
-namespace: linkerd-smi
-
 # -- Kubernetes DNS Domain name to use
 clusterDomain: cluster.local
 

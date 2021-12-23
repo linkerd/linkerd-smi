@@ -122,6 +122,11 @@ func (h *TestHelper) GetSMIHelmVersion() string {
 	return h.helm.smiVersion
 }
 
+// GetSMINamespace returns the namespace in which linkerd-smi is installed
+func (h *TestHelper) GetSMINamespace() string {
+	return "linkerd-smi"
+}
+
 // IsHelm returns true if Helm path is passed
 func (h *TestHelper) IsHelm() bool {
 	return h.helm.path != ""

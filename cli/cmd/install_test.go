@@ -16,12 +16,6 @@ func TestRender(t *testing.T) {
 			nil,
 			"install_default.golden",
 		},
-		{
-			map[string]interface{}{
-				"namespace": "linkerd-smi-2",
-			},
-			"install_override_namespace.golden",
-		},
 	}
 
 	for i, tc := range testCases {

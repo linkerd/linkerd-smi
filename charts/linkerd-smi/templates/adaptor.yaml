@@ -6,7 +6,7 @@ metadata:
     linkerd.io/extension: smi
     component: smi-adaptor
   name: smi-adaptor
-  namespace: {{.Values.namespace}}
+  {{ include "partials.namespace" . }}
 spec:
   replicas: 1
   selector:

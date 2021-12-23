@@ -135,8 +135,16 @@ func TestSMIAdaptorWithHelm(t *testing.T) {
 	// Use the version if it is passed
 	var smiArgs []string
 	if TestHelper.GetSMIHelmVersion() != "" {
-		smiArgs = append(smiArgs, []string{"--set", "adaptor.image.tag=" + TestHelper.GetSMIHelmVersion()}...)
+		smiArgs = append(smiArgs, []string{
+			"--set", "adaptor.image.tag=" + TestHelper.GetSMIHelmVersion(),
+		}...)
 	}
+
+	// Set namespace creation flags
+	smiArgs = append(smiArgs, []string{
+		"--namespace", TestHelper.GetSMINamespace(),
+		"--create-namespace",
+	}...)
 
 	if stdout, stderr, err := TestHelper.HelmInstall(TestHelper.GetSMIHelmChart(), "linkerd-smi", smiArgs...); err != nil {
 		linkerdtestutil.AnnotatedFatalf(t, "'helm install' command failed\n%s\n%s\n%v", stdout, stderr, err)
