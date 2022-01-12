@@ -9,8 +9,7 @@ kubeVersion: ">=1.16.0-0"
 name: linkerd-smi
 sources:
 - https://github.com/linkerd/linkerd-smi/
-# this version will be updated by the CI before publishing the Helm tarball
-version: 0.1.0
+version: 1.0.0
 icon: https://linkerd.io/images/logo-only-200h.png
 maintainers:
   - name: Linkerd authors
