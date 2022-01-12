@@ -35,7 +35,6 @@ if [ "$1" = package ]; then
                 exit 1
     fi
     fullVersion=${BASH_REMATCH[0]}
-    version=${BASH_REMATCH[1]}
 
     # set version in Values files
     setValues "linkerdSMIVersionValue" "$fullVersion"
