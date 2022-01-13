@@ -34,7 +34,7 @@ To install the linkerd-smi Helm chart, run:
 ## Compatibility matrix
 
 | linkerd-smi | linkerd stable    | linkerd edge              |
-| ----------- | ----------------- | -------- ---------------- |
+| ----------- | ----------------- | ------------------------- |
 | v0.1.0      | 2.11 and previous | edge-21.12.1 and previous |
 | v0.2.0      | 2.12.0 and later  | edge-21.12.2 and later    |
 
