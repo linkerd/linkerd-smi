@@ -44,8 +44,20 @@ func TestSMIAdaptorWithCLI(t *testing.T) {
 
 	ctx := context.Background()
 
+	// Install Linkerd CRDs
+	out, err := TestHelper.LinkerdRun("install", "--crds")
+	if err != nil {
+		linkerdtestutil.AnnotatedFatal(t, "'linkerd install --crds' command failed", err)
+	}
+
+	out, err = TestHelper.KubectlApply(out, "")
+	if err != nil {
+		linkerdtestutil.AnnotatedFatalf(t, "'kubectl apply' command failed",
+			"'kubectl apply' command failed\n%s", out)
+	}
+
 	// Install Linkerd
-	out, err := TestHelper.LinkerdRun("install")
+	out, err = TestHelper.LinkerdRun("install")
 	if err != nil {
 		linkerdtestutil.AnnotatedFatal(t, "'linkerd install' command failed", err)
 	}
