@@ -6,6 +6,7 @@ require (
 	github.com/fatih/color v1.9.0
 	github.com/linkerd/linkerd2 v0.0.0-20210617063832-395cc3677e31
 	github.com/servicemeshinterface/smi-sdk-go v0.4.1
+	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.3
 	helm.sh/helm/v3 v3.4.1
@@ -79,6 +80,7 @@ require (
 	github.com/prometheus/common v0.10.0 // indirect
 	github.com/prometheus/procfs v0.1.3 // indirect
 	github.com/sergi/go-diff v1.0.0 // indirect
+	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
