@@ -9,7 +9,7 @@ kubeVersion: ">=1.16.0-0"
 name: linkerd-smi
 sources:
 - https://github.com/linkerd/linkerd-smi/
-version: 1.0.0
+version: 1.1.0
 icon: https://linkerd.io/images/logo-only-200h.png
 maintainers:
   - name: Linkerd authors

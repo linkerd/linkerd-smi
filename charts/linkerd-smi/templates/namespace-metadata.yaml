@@ -22,7 +22,7 @@ spec:
       serviceAccountName: namespace-metadata
       containers:
       - name: namespace-metadata
-        image: curlimages/curl:7.78.0
+        image: {{ .Values.namespaceMetadata.image.registry }}/{{ .Values.namespaceMetadata.image.name }}:{{ .Values.namespaceMetadata.image.tag }}
         command: ["/bin/sh"]
         args:
         - -c
@@ -38,3 +38,15 @@ spec:
           curl -kfv -XPATCH -H "Content-Type: application/json-patch+json" -H "Authorization: Bearer $token" \
             -d "[$ops]" \
             "https://kubernetes.default.svc/api/v1/namespaces/{{.Release.Namespace}}?fieldManager=kubectl-label"
+      {{- if .Values.namespaceMetadata.affinity }}
+      affinity: {{ toYaml .Values.namespaceMetadata.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.namespaceMetadata.nodeSelector }}
+      nodeSelector: {{ toYaml .Values.namespaceMetadata.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.namespaceMetadata.tolerations }}
+      tolerations: {{ toYaml .Values.namespaceMetadata.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.namespaceMetadata.topologySpreadConstraints }}
+      topologySpreadConstraints: {{ toYaml .Values.namespaceMetadata.topologySpreadConstraints | nindent 8 }}
+      {{- end }}

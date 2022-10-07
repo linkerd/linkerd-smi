@@ -1,6 +1,26 @@
 # -- Kubernetes DNS Domain name to use
 clusterDomain: cluster.local
 
+# Namespace metadata job configuration
+namespaceMetadata:
+  image:
+    # -- Docker registry for the namespace metadata job instance
+    registry: "curlimages"
+    # -- Docker image name for the namespace metadata job instance
+    name: "curl"
+    # -- Docker image tag for the namespace metadata job instance
+    tag: 7.78.0
+    # -- Pull policy for the namespace metadata job instance
+    pullPolicy: IfNotPresent
+  # -- Affinity for namespace metadata pod assignments
+  affinity: {}
+  # -- Node selector for namespace metadata pod assignments
+  nodeSelector: {}
+  # -- Tolerations for namespace metadata pod assignments
+  tolerations: []
+  # -- Topology spread constraints for namespace metadata pod assignments
+  topologySpreadConstraints: []
+
 # SMI Adaptor configuration
 adaptor:
   image:
@@ -12,3 +32,11 @@ adaptor:
     tag: linkerdSMIVersionValue
     # -- Pull policy  for the adaptor instance
     pullPolicy: IfNotPresent
+  # -- Affinity for adaptor pod assignments
+  affinity: {}
+  # -- Node selector for adaptor pod assignments
+  nodeSelector: {}
+  # -- Tolerations for adaptor pod assignments
+  tolerations: []
+  # -- Topology spread constraints for adaptor pod assignments
+  topologySpreadConstraints: []

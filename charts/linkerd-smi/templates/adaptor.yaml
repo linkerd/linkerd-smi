@@ -32,3 +32,15 @@ spec:
         - containerPort: 9995
           name: admin-http
       serviceAccountName: smi-adaptor
+      {{- if .Values.adaptor.affinity }}
+      affinity: {{ toYaml .Values.adaptor.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.adaptor.nodeSelector }}
+      nodeSelector: {{ toYaml .Values.adaptor.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.adaptor.tolerations }}
+      tolerations: {{ toYaml .Values.adaptor.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.adaptor.topologySpreadConstraints }}
+      topologySpreadConstraints: {{ toYaml .Values.adaptor.topologySpreadConstraints | nindent 8 }}
+      {{- end }}   
