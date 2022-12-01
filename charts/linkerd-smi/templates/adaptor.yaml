@@ -31,4 +31,7 @@ spec:
         ports:
         - containerPort: 9995
           name: admin-http
+        {{- if .Values.adaptor.resources -}}
+        {{- include "partials.resources" .Values.adaptor.resources | nindent 8 }}
+        {{- end }}
       serviceAccountName: smi-adaptor
