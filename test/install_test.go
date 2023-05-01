@@ -126,10 +126,19 @@ func TestSMIAdaptorWithHelm(t *testing.T) {
 		"--set", "identity.issuer.tls.crtPEM=" + helmTLSCerts.Cred.Crt.EncodeCertificatePEM(),
 		"--set", "identity.issuer.tls.keyPEM=" + helmTLSCerts.Cred.EncodePrivateKeyPEM(),
 		"--set", "identity.issuer.crtExpiry=" + helmTLSCerts.Cred.Crt.Certificate.NotAfter.Format(time.RFC3339),
+		"--namespace", "linkerd",
+		"--create-namespace",
+		"--devel",
 	}
 
-	if stdout, stderr, err := TestHelper.HelmInstall("linkerd-edge/linkerd2", "linkerd", args...); err != nil {
-		linkerdtestutil.AnnotatedFatalf(t, "'helm install' command failed\n%s\n%s\n%v", stdout, stderr, err)
+	if stdout, stderr, err := TestHelper.HelmInstall("linkerd-edge/linkerd-crds", "linkerd-crds", args...); err != nil {
+		linkerdtestutil.AnnotatedFatalf(t, "'helm install' command failed",
+			"'helm install' command failed\n%s\n%s", stdout, stderr)
+	}
+
+	if stdout, stderr, err := TestHelper.HelmInstall("linkerd-edge/linkerd-control-plane", "linkerd-control-plane", args...); err != nil {
+		linkerdtestutil.AnnotatedFatalf(t, "'helm install' command failed",
+			"'helm install' command failed\n%s\n%s", stdout, stderr)
 	}
 
 	// Check if linkerd is ready
@@ -159,7 +168,7 @@ func TestSMIAdaptorWithHelm(t *testing.T) {
 	}...)
 
 	if stdout, stderr, err := TestHelper.HelmInstall(TestHelper.GetSMIHelmChart(), "linkerd-smi", smiArgs...); err != nil {
-		linkerdtestutil.AnnotatedFatalf(t, "'helm install' command failed\n%s\n%s\n%v", stdout, stderr, err)
+		linkerdtestutil.AnnotatedFatalf(t, "'helm install' command failed", "'helm install' command failed\n%s\n%s\n%v", stdout, stderr, err)
 	}
 
 	o, err := TestHelper.Kubectl("", "--namespace=linkerd-smi", "rollout", "status", "--timeout=60m", "deploy/smi-adaptor")
