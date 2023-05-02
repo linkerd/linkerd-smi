@@ -82,7 +82,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-go-
     - name: Download image archives
-      uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60
+      uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a
       with:
         name: build-archives
         path: build-archives
@@ -126,7 +126,7 @@ jobs:
         echo "TAG=$(CI_FORCE_CLEAN=1 bin/root-tag)" >> $GITHUB_ENV
         bin/extract-release-notes NOTES.md
     - name: Download CLI archives
-      uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60
+      uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a
       with:
         name: build-archives
         path: build-archives
@@ -165,7 +165,7 @@ jobs:
         ref: gh-pages
         fetch-depth: 0
     - name: Download CLI archives
-      uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60
+      uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a
       with:
         name: build-archives
         path: build-archives
