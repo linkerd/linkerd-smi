@@ -1,6 +1,6 @@
 ARG BUILDPLATFORM=linux/amd64
 
-FROM --platform=$BUILDPLATFORM golang:1.17.3-alpine as golang
+FROM --platform=$BUILDPLATFORM golang:1.19-alpine as golang
 WORKDIR /linkerd-smi-build
 COPY go.mod go.sum ./
 RUN go mod download
