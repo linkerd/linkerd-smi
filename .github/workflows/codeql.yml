@@ -26,8 +26,8 @@ jobs:
       uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
     - name: Initialize
       # Unpinned action version so that we automatically get analyzer updates.
-      uses: github/codeql-action/init@v1
+      uses: github/codeql-action/init@v2
       with:
         languages: go
     - name: Analyze
-      uses: github/codeql-action/analyze@v1
+      uses: github/codeql-action/analyze@v2
