@@ -137,7 +137,7 @@ jobs:
       run: echo "::set-output name=tag::$(echo $TAG)"
     - name: Create release
       id: create_release
-      uses: softprops/action-gh-release@91409e712cf565ce9eff10c87a8d1b11b81757ae
+      uses: softprops/action-gh-release@c9b46fe7aad9f02afd89b12450b780f52dacfb2d
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
