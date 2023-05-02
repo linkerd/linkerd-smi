@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/fatih/color v1.9.0
 	github.com/linkerd/linkerd2 v0.0.0-20210617063832-395cc3677e31
-	github.com/servicemeshinterface/smi-sdk-go v0.4.1
+	github.com/servicemeshinterface/smi-sdk-go v0.5.0
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
