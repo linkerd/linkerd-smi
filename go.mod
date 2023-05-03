@@ -8,7 +8,7 @@ require (
 	github.com/servicemeshinterface/smi-sdk-go v0.5.0
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
 	github.com/sirupsen/logrus v1.9.0
-	github.com/spf13/cobra v1.1.3
+	github.com/spf13/cobra v1.7.0
 	helm.sh/helm/v3 v3.6.1
 	k8s.io/api v0.21.0
 	k8s.io/apimachinery v0.21.0
@@ -76,7 +76,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
 	github.com/huandu/xstrings v1.3.1 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/linkerd/linkerd2-proxy-api v0.1.16 // indirect
@@ -129,7 +129,7 @@ require (
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiextensions-apiserver v0.21.0 // indirect
 	k8s.io/cli-runtime v0.21.0 // indirect
 	k8s.io/klog/v2 v2.8.0 // indirect
