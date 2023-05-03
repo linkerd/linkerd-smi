@@ -1,5 +1,10 @@
 # Changes
 
+## v0.2.1
+
+This is a maintainance release which upgrades a number of dependencies and moves
+the project onto Go 1.19.
+
 ## v0.2.0
 
 This release adds the `TrafficSplit` (`v1alpha1` and `v1alpha2`) CRD into the

@@ -37,10 +37,11 @@ To install the linkerd-smi Helm chart, run:
 | ----------- | ----------------- | ------------------------- |
 | v0.1.0      | 2.11 and previous | edge-21.12.1 and previous |
 | v0.2.0      | 2.12.0 and later  | edge-21.12.2 and later    |
+| v0.2.1      | 2.12.0 and later  | edge-21.12.2 and later    |
 
 ## License
 
-Copyright 2021-2022 the Linkerd Authors. All rights reserved.
+Copyright 2021-2023 the Linkerd Authors. All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 these files except in compliance with the License. You may obtain a copy of the
