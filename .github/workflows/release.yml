@@ -16,7 +16,7 @@ jobs:
       ARCHIVES: /home/runner/archives
     steps:
     - name: Checkout code
-      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+      uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
     - uses: actions/setup-go@37335c7bb261b353407cff977110895fa0b4f7d8
       with:
         go-version: '1.16.6'
@@ -70,7 +70,7 @@ jobs:
         test: [helm, cli]
     steps:
     - name: Checkout code
-      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+      uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
     - name: Set environment variables from scripts
       run: |
         echo "TAG=$(CI_FORCE_CLEAN=1 bin/root-tag)" >> $GITHUB_ENV
@@ -120,7 +120,7 @@ jobs:
       contents: write
     steps:
     - name: Checkout code
-      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+      uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
     - name: Set environment variables from scripts
       run: |
         echo "TAG=$(CI_FORCE_CLEAN=1 bin/root-tag)" >> $GITHUB_ENV
@@ -160,7 +160,7 @@ jobs:
     needs: [gh_release]
     steps:
     - name: Checkout code
-      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+      uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
       with:
         ref: gh-pages
         fetch-depth: 0
