@@ -10,12 +10,12 @@ import (
 
 	"github.com/linkerd/linkerd-smi/pkg/adaptor"
 	spclientset "github.com/linkerd/linkerd2/controller/gen/client/clientset/versioned"
-	k8sAPI "github.com/linkerd/linkerd2/controller/k8s"
 	"github.com/linkerd/linkerd2/pkg/admin"
 	"github.com/linkerd/linkerd2/pkg/k8s"
 	tsclientset "github.com/servicemeshinterface/smi-sdk-go/pkg/gen/client/split/clientset/versioned"
 	tsinformers "github.com/servicemeshinterface/smi-sdk-go/pkg/gen/client/split/informers/externalversions"
 	log "github.com/sirupsen/logrus"
+	"k8s.io/client-go/kubernetes"
 )
 
 func main() {
@@ -44,12 +44,7 @@ func main() {
 		log.Fatalf("error configuring Kubernetes API client: %v", err)
 	}
 
-	k8sAPI, err := k8sAPI.InitializeAPI(
-		ctx,
-		*kubeConfigPath,
-		false,
-		k8sAPI.SP, k8sAPI.TS,
-	)
+	client, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		log.Fatalf("Failed to initialize K8s API: %s", err)
 	}
@@ -68,7 +63,7 @@ func main() {
 	tsInformerFactory := tsinformers.NewSharedInformerFactory(tsClient, 10*time.Minute)
 
 	controller := adaptor.NewController(
-		k8sAPI.Client,
+		client,
 		*clusterDomain,
 		tsClient,
 		spClient,
@@ -77,7 +72,15 @@ func main() {
 	)
 
 	// Start the Admin Server
-	go admin.StartServer(*metricsAddr)
+	ready := true
+	adminServer := admin.NewServer(*metricsAddr, false, &ready)
+
+	go func() {
+		log.Infof("starting admin server on %s", *metricsAddr)
+		if err := adminServer.ListenAndServe(); err != nil {
+			log.Errorf("failed to start admin server: %s", err)
+		}
+	}()
 
 	tsInformerFactory.Start(done)
 
@@ -87,4 +90,5 @@ func main() {
 	}
 
 	log.Info("Shutting down")
+	adminServer.Shutdown(ctx)
 }

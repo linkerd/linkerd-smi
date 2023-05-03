@@ -13,11 +13,11 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-20.04
     container:
-      image: golang:1.16.4
+      image: golang:1.19
     steps:
     - name: Checkout code
       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
     - name: Go unit tests
       run: |
-        go get gotest.tools/gotestsum@v0.4.2
+        go install gotest.tools/gotestsum@v0.4.2
         gotestsum -- -cover -race -v -mod=readonly ./...
