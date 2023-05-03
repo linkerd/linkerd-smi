@@ -170,7 +170,7 @@ jobs:
         name: build-archives
         path: build-archives
     - name: Install Helm
-      uses: azure/setup-helm@18bc76811624f360dbd7f18c2d4ecb32c7b87bab
+      uses: azure/setup-helm@5119fcb9089d432beecbf79bb2c7915207344b78
     - name: Helm chart creation and upload
       run: |
         helm repo index --merge index.yaml build-archives/helm
