@@ -2,7 +2,7 @@
 
 ## v0.2.1
 
-This is a maintainance release which upgrades a number of dependencies and moves
+This is a maintenance release which upgrades a number of dependencies and moves
 the project onto Go 1.19.
 
 ## v0.2.0
