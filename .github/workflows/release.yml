@@ -17,7 +17,7 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
-    - uses: actions/setup-go@37335c7bb261b353407cff977110895fa0b4f7d8
+    - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9
       with:
         go-version: '1.16.6'
     - name: Set environment variables from scripts
