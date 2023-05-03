@@ -16,7 +16,7 @@ jobs:
       image: golang:1.16.4
     steps:
     - name: Checkout code
-      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+      uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
     - name: Go unit tests
       run: |
         go get gotest.tools/gotestsum@v0.4.2
