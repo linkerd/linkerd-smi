@@ -36,13 +36,17 @@ jobs:
       uses: docker/setup-qemu-action@e81a89b1732b9c48d79cd809d8d81d79c4647a18
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@4b4e9c3e2d4531116a6f8ba8e71fc6e2cb6e6c8c
+    - uses: docker/login-action@dd4fa0671be5250ee6f50aedf4cb05514abda2c7
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     - name: Build SMI docker image
       env:
         DOCKER_MULTIARCH: 1
         # Need to push here instead for multi-arch image push to work
         DOCKER_PUSH: 1
       run: |
-        echo "${{ secrets.DOCKER_GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.DOCKER_GHCR_USERNAME }}" --password-stdin
         bin/docker-build
     - name: Build SMI CLI
       env:
