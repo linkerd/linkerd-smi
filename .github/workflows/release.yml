@@ -40,8 +40,8 @@ jobs:
     - uses: docker/login-action@dd4fa0671be5250ee6f50aedf4cb05514abda2c7
       with:
         registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        username: ${{ env.DOCKER_GHCR_USERNAME }}
+        password: ${{ secrets.DOCKER_GHCR_PAT }}
     - name: Build SMI docker image
       env:
         DOCKER_MULTIARCH: 1
