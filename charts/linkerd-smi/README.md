@@ -2,7 +2,7 @@
 
 The Linkerd-SMI extension adds SMI adaptor to the Linkerd install
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square)
+![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square)
 
 **Homepage:** <https://linkerd.io>
 
