@@ -137,7 +137,7 @@ jobs:
         path: build-archives
     - name: Generate SHA256SUMS
       run: |
-        ./bin/generate-sha256sums $TAG
+        ./bin/generate-sha256sums $TAG $CHART_VERSION
     - id: set-env
       run: echo "::set-output name=tag::$(echo $TAG)"
     - name: Create release
