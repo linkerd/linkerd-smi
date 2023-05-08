@@ -8,6 +8,7 @@ permissions:
   packages: write
 env:
   GH_ANNOTATION: true
+  CHART_VERSION: 1.0.1
 jobs:
   docker_build:
     runs-on: ubuntu-20.04
@@ -108,8 +109,7 @@ jobs:
       if: ${{ matrix.test == 'helm' }}
       run: |
           projectdir=$(pwd)
-          shorttag="${TAG#v}"
-          go test --failfast --mod=readonly "./test" --linkerd="$HOME/.linkerd2/bin/linkerd" --helm-path="$projectdir/bin/helm" --smi-helm-chart="$projectdir/build-archives/helm/linkerd-smi-$shorttag.tgz" --integration-tests
+          go test --failfast --mod=readonly "./test" --linkerd="$HOME/.linkerd2/bin/linkerd" --helm-path="$projectdir/bin/helm" --smi-helm-chart="$projectdir/build-archives/helm/linkerd-smi-$CHART_VERSION.tgz" --integration-tests
     - name: Run CLI Integration Tests
       if: ${{ matrix.test == 'cli' }}
       run: |
