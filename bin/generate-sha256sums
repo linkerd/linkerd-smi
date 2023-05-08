@@ -2,10 +2,11 @@
 
 set -eu
 
-if [ $# -eq 1 ]; then
+if [ $# -eq 2 ]; then
     tag=${1:-}
+    chart_version=${2:-}
 else
-    echo "usage: ${0##*/} tag" >&2
+    echo "usage: ${0##*/} tag chart_version" >&2
     exit 64
 fi
 
@@ -25,5 +26,5 @@ for os in $OS; do
 done
 
 # generate for helm chart
-cp build-archives/helm/linkerd-smi-"$shorttag".tgz ./target/release
-openssl dgst -sha256 ./target/release/linkerd-smi-"$shorttag".tgz | awk '{print $2}' > "./target/release/linkerd-smi-$shorttag.tgz.sha256"
+cp build-archives/helm/linkerd-smi-"$chart_version".tgz ./target/release
+openssl dgst -sha256 ./target/release/linkerd-smi-"$chart_version".tgz | awk '{print $2}' > "./target/release/linkerd-smi-$chart_version.tgz.sha256"
