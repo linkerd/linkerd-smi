@@ -153,9 +153,7 @@ jobs:
           ./target/release/linkerd-smi-*.tgz
           ./target/release/linkerd-smi-*.tgz.sha256
           ./target/release/linkerd-smi-*-darwin*
-          ./target/release/linkerd-smi-*-darwin*.sha256
           ./target/release/linkerd-smi-*-linux-*
-          ./target/release/linkerd-smi-*-linux-*.sha256
           ./target/release/linkerd-smi-*-windows.exe
           ./target/release/linkerd-smi-*-windows.exe.sha256
   chart_deploy:
