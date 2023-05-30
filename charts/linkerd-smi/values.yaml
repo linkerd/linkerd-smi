@@ -12,6 +12,7 @@ adaptor:
     tag: linkerdSMIVersionValue
     # -- Pull policy  for the adaptor instance
     pullPolicy: IfNotPresent
+
   # -- Affinity for the adaptor instance
   affinity: {}
   # -- Node selector for the adaptor instance

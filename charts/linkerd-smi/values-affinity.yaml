@@ -1,0 +1,27 @@
+# This values.yaml file contains the values to showcase affinity parameter usage for the Adaptor
+# You can choose what suits your needs: nodeAffinity, podAntiAffinity, podAffinity
+# Finally you can enforce a hard ('required') or soft rule ('preferred')
+#
+# https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
+
+adaptor:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: "workload"
+            operator: In
+            values:
+            - "critical"
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: security
+              operator: In
+              values:
+              - S2
+          topologyKey: topology.kubernetes.io/zone

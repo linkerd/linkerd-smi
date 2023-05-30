@@ -29,10 +29,9 @@ spec:
       nodeSelector: 
 {{toYaml . | indent 8}}
       {{- end }}
-      {{- with .Values.adaptor.affinity.nodeAffinity }}
+      {{- with .Values.adaptor.affinity }}
       affinity:
-        nodeAffinity:
-{{toYaml . | indent 10 }}
+{{toYaml . | indent 8 }}
       {{- end }}
       containers:
       - args:
