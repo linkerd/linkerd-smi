@@ -7,7 +7,7 @@ require (
 	github.com/linkerd/linkerd2 v0.0.0-20230502184307-e1ba0e039074
 	github.com/servicemeshinterface/smi-sdk-go v0.5.0
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
-	github.com/sirupsen/logrus v1.9.2
+	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0
 	helm.sh/helm/v3 v3.12.0
 	k8s.io/api v0.27.2
