@@ -21,6 +21,18 @@ spec:
         linkerd.io/extension: smi
         component: smi-adaptor
     spec:
+      {{- with .Values.adaptor.tolerations}}
+      tolerations: 
+{{toYaml . | indent 8}}
+      {{- end }}
+      {{- with .Values.adaptor.nodeSelector }}
+      nodeSelector: 
+{{toYaml . | indent 8}}
+      {{- end }}
+      {{- with .Values.adaptor.affinity }}
+      affinity:
+{{toYaml . | indent 8 }}
+      {{- end }}
       containers:
       - args:
         - smi-adaptor

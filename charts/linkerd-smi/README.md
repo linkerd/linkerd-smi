@@ -64,10 +64,13 @@ Kubernetes: `>=1.16.0-0`
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| adaptor.affinity | object | `{}` | Affinity for the adaptor instance |
 | adaptor.image.name | string | `"smi-adaptor"` | Docker image name for the adaptor instance |
 | adaptor.image.pullPolicy | string | `"IfNotPresent"` | Pull policy  for the adaptor instance |
 | adaptor.image.registry | string | `"cr.l5d.io/linkerd"` | Docker registry for the adaptor instance |
 | adaptor.image.tag | string | `"linkerdSMIVersionValue"` | Docker image tag for the adaptor instance |
+| adaptor.nodeSelector | object | `{}` | Node selector for the adaptor instance |
+| adaptor.tolerations | list | `[]` | Tolerations for the adaptor instance |
 | clusterDomain | string | `"cluster.local"` | Kubernetes DNS Domain name to use |
 
 ----------------------------------------------
