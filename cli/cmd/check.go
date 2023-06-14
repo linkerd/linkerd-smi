@@ -17,10 +17,6 @@ const (
 	linkerdSMIExtensionCheck healthcheck.CategoryID = "linkerd-smi"
 )
 
-var (
-	smiNamespace string
-)
-
 type checkOptions struct {
 	wait      time.Duration
 	output    string
@@ -39,11 +35,10 @@ func smiCategory(hc *healthcheck.HealthChecker) *healthcheck.Category {
 			Fatal().
 			WithCheck(func(ctx context.Context) error {
 				// Get SMI Extension Namespace
-				ns, err := hc.KubeAPIClient().GetNamespaceWithExtensionLabel(ctx, smiExtensionName)
+				_, err := hc.KubeAPIClient().GetNamespaceWithExtensionLabel(ctx, smiExtensionName)
 				if err != nil {
 					return err
 				}
-				smiNamespace = ns.Name
 				return nil
 			}))
 
@@ -54,7 +49,7 @@ func smiCategory(hc *healthcheck.HealthChecker) *healthcheck.Category {
 			Warning().
 			WithCheck(func(ctx context.Context) error {
 				// Check for Collector Service Account
-				return healthcheck.CheckServiceAccounts(ctx, hc.KubeAPIClient(), []string{"smi-adaptor"}, smiNamespace, "")
+				return healthcheck.CheckServiceAccounts(ctx, hc.KubeAPIClient(), []string{"smi-adaptor"}, hc.DataPlaneNamespace, "")
 			}))
 
 	checkers = append(checkers,
@@ -63,7 +58,7 @@ func smiCategory(hc *healthcheck.HealthChecker) *healthcheck.Category {
 			Warning().
 			WithCheck(func(ctx context.Context) error {
 				// Check if SMI Extension pods have been injected
-				pods, err := hc.KubeAPIClient().GetPodsByNamespace(ctx, smiNamespace)
+				pods, err := hc.KubeAPIClient().GetPodsByNamespace(ctx, hc.DataPlaneNamespace)
 				if err != nil {
 					return err
 				}
@@ -77,7 +72,7 @@ func smiCategory(hc *healthcheck.HealthChecker) *healthcheck.Category {
 			WithRetryDeadline(hc.RetryDeadline).
 			SurfaceErrorOnRetry().
 			WithCheck(func(ctx context.Context) error {
-				pods, err := hc.KubeAPIClient().GetPodsByNamespace(ctx, smiNamespace)
+				pods, err := hc.KubeAPIClient().GetPodsByNamespace(ctx, hc.DataPlaneNamespace)
 				if err != nil {
 					return err
 				}
@@ -99,7 +94,7 @@ func smiCategory(hc *healthcheck.HealthChecker) *healthcheck.Category {
 			WithRetryDeadline(hc.RetryDeadline).
 			SurfaceErrorOnRetry().
 			WithCheck(func(ctx context.Context) error {
-				return hc.CheckProxyHealth(ctx, hc.ControlPlaneNamespace, smiNamespace)
+				return hc.CheckProxyHealth(ctx, hc.ControlPlaneNamespace, hc.DataPlaneNamespace)
 			}))
 
 	return healthcheck.NewCategory(linkerdSMIExtensionCheck, checkers, true)
