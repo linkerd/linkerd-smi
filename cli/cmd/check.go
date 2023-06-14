@@ -102,8 +102,9 @@ func smiCategory(hc *healthcheck.HealthChecker) *healthcheck.Category {
 
 func newCheckOptions() *checkOptions {
 	return &checkOptions{
-		wait:   300 * time.Second,
-		output: healthcheck.TableOutput,
+		wait:      300 * time.Second,
+		output:    healthcheck.TableOutput,
+		namespace: "linkerd-smi",
 	}
 }
 
@@ -137,7 +138,7 @@ code.`,
 	cmd.Flags().StringVarP(&options.output, "output", "o", options.output, "Output format. One of: basic, json")
 	cmd.Flags().DurationVar(&options.wait, "wait", options.wait, "Maximum allowed time for all tests to pass")
 	cmd.Flags().BoolVar(&options.proxy, "proxy", options.proxy, "Also run data-plane checks, to determine if the data plane is healthy")
-	cmd.Flags().StringVarP(&options.namespace, "namespace", "n", options.namespace, "Namespace to use for --proxy checks (default: all namespaces)")
+	cmd.Flags().StringVarP(&options.namespace, "namespace", "n", options.namespace, "Namespace to use for --proxy checks (default: linkerd-smi)")
 	cmd.Flags().StringVar(&options.pre, "pre", options.namespace, "Only run pre-installation checks, to determine if the extension can be installed")
 
 	// stop marking these flags as hidden, once they are being supported
