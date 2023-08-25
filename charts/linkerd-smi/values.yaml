@@ -19,3 +19,6 @@ adaptor:
   nodeSelector: {}
   # -- Tolerations for the adaptor instance
   tolerations: []
+
+namespaceMetadata:
+  curlImage: curlimages/curl:7.78.0

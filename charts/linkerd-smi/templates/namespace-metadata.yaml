@@ -22,7 +22,7 @@ spec:
       serviceAccountName: namespace-metadata
       containers:
       - name: namespace-metadata
-        image: curlimages/curl:7.78.0
+        image: {{ .Values.namespaceMetadata.curlImage }}
         command: ["/bin/sh"]
         args:
         - -c
