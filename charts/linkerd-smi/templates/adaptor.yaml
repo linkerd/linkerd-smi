@@ -43,6 +43,17 @@ spec:
         ports:
         - containerPort: 9995
           name: admin-http
+        {{- with .Values.adaptor.resources.requests }}
+        resources:
+          requests:
+            cpu: {{ .cpu }}
+            memory: {{ .memory }}
+        {{- end }}
+        {{- with .Values.adaptor.resources.limits }}
+          limits:
+            cpu: {{ .cpu }}
+            memory: {{ .memory }}
+        {{- end }}
       serviceAccountName: smi-adaptor
       securityContext:
         runAsUser: {{.Values.adaptor.runAsUser}}

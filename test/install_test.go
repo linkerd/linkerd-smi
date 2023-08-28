@@ -341,3 +341,31 @@ func checkIfServiceProfileMatches(sp *serviceprofile.ServiceProfile, name, names
 
 	return nil
 }
+
+// This test checks if the SMI Adaptor Helm chart properly sets resource requests and limits.
+func TestSMIAdaptorWithResourceRequestsAndLimits(t *testing.T) {
+    
+    // Deploy the Helm chart with custom resource requests and limits
+    _, stderr, err := TestHelper.HelmInstall("path/to/linkerd-smi", "linkerd-smi", []string{
+        "--namespace", "linkerd-smi",
+        "--set", "adaptor.resources.requests.cpu=100m",
+        "--set", "adaptor.resources.requests.memory=256Mi",
+        "--set", "adaptor.resources.limits.cpu=200m",
+        "--set", "adaptor.resources.limits.memory=512Mi",
+    }...)
+    if err != nil {
+        linkerdtestutil.AnnotatedFatal(t, "'helm install' command failed", err)
+    }
+
+    // Check if there are any errors in stderr
+    if stderr != "" {
+        linkerdtestutil.AnnotatedFatal(t, "'helm install' command stderr", fmt.Errorf(stderr))
+    }
+
+    // Check if the SMI Adaptor pods are running
+    _, err = TestHelper.Kubectl("", "--namespace=linkerd-smi", "wait", "--for=condition=Ready", "pod", "-l=app=smi-adaptor", "--timeout=2m")
+    if err != nil {
+        linkerdtestutil.AnnotatedFatal(t, "SMI Adaptor pods not ready", err)
+    }
+}
+
