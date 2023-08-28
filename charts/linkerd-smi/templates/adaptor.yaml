@@ -54,3 +54,5 @@ spec:
             memory: {{ .memory }}
         {{- end }}
       serviceAccountName: smi-adaptor
+      securityContext:
+        runAsUser: {{.Values.adaptor.runAsUser}}

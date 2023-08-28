@@ -19,6 +19,9 @@ adaptor:
     tag: linkerdSMIVersionValue
     # -- Pull policy  for the adaptor instance
     pullPolicy: IfNotPresent
+  
+  # -- User ID for the SMI adaptor component
+  runAsUser: 65534
 
   # -- SMI adaptor resource requests & limits
   resources:
