@@ -44,3 +44,5 @@ spec:
         - containerPort: 9995
           name: admin-http
       serviceAccountName: smi-adaptor
+      securityContext:
+        runAsUser: {{.Values.adaptor.runAsUser}}
