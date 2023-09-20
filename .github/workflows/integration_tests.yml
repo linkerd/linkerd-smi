@@ -15,6 +15,12 @@ permissions:
 env:
   GH_ANNOTATION: true
 jobs:
+  eraseme:
+    - uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
+      with:
+        registry: ghcr.io
+        username: ${{ secrets.DOCKER_GHCR_USERNAME }}
+        password: ${{ secrets.DOCKER_GHCR_PAT }}
   docker_build:
     runs-on: ubuntu-20.04
     name: Build SMI Extension
