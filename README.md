@@ -29,15 +29,15 @@ Alternatively, you can download the CLI directly via the
 To install the linkerd-smi Helm chart, run:
 
     helm repo add l5d-smi https://linkerd.github.io/linkerd-smi
-    helm install linkers-smi -n --create-namespace l5d-smi/linkerd-smi
+    helm install linkerd-smi -n --create-namespace l5d-smi/linkerd-smi
 
 ## Compatibility matrix
 
-| linkerd-smi | linkerd stable    | linkerd edge              |
-| ----------- | ----------------- | ------------------------- |
-| v0.1.0      | 2.11 and previous | edge-21.12.1 and previous |
-| v0.2.0      | 2.12.0 and later  | edge-21.12.2 and later    |
-| v0.2.1      | 2.12.0 and later  | edge-21.12.2 and later    |
+| linkerd-smi      | linkerd stable    | linkerd edge              |
+| ---------------- | ----------------- | ------------------------- |
+| v0.1.0           | 2.11 and previous | edge-21.12.1 and previous |
+| v0.2.0           | 2.12.0 and later  | edge-21.12.2 and later    |
+| v0.2.1 and later | 2.12.0 and later  | edge-21.12.2 and later    |
 
 ## License
 
