@@ -26,6 +26,11 @@ func main() {
 	clusterDomain := cmd.String("cluster-domain", "cluster.local", "kubernetes cluster domain")
 	workers := cmd.Int("worker-threads", 2, "number of concurrent goroutines to process the workqueue")
 
+	err := cmd.Parse(os.Args[1:])
+	if err != nil {
+		log.Fatalf("Error parsing flags: %s", err)
+	}
+
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
