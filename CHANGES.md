@@ -1,5 +1,9 @@
 # Changes
 
+## v0.2.4
+
+This release fixes an issue where CLI flags were not being parsed.
+
 ## v0.2.3
 
 Replaced `curlimages/curl` docker image in the `namespace-metadata` Job with
