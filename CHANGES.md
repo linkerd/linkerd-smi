@@ -1,5 +1,10 @@
 # Changes
 
+## v0.2.5
+
+This release just bumps the Helm chart version, which we had missed in the
+previous releases.
+
 ## v0.2.4
 
 This release fixes an issue where CLI flags were not being parsed.
