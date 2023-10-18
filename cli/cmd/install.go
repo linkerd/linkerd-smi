@@ -25,7 +25,7 @@ var (
 		"templates/namespace.yaml",
 		"templates/adaptor.yaml",
 		"templates/rbac.yaml",
-		"templates/_metadata.tpl",
+		"templates/_partials.tpl",
 		"templates/trafficsplit-crd.yaml",
 	}
 )

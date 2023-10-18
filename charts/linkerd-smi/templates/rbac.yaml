@@ -44,3 +44,4 @@ metadata:
   labels:
     linkerd.io/extension: smi
     component: smi-adaptor
+{{- include "partials.image-pull-secrets" .Values.imagePullSecrets }}
