@@ -72,6 +72,7 @@ Kubernetes: `>=1.16.0-0`
 | adaptor.nodeSelector | object | `{}` | Node selector for the adaptor instance |
 | adaptor.tolerations | list | `[]` | Tolerations for the adaptor instance |
 | clusterDomain | string | `"cluster.local"` | Kubernetes DNS Domain name to use |
+| imagePullSecrets | list | `[]` | imagePullSecrets to apply to all ServiceAccounts for pulling images from private registries |
 | linkerdNamespace | string | `"linkerd"` | Namespace of the Linkerd core control-plane install |
 | namespaceMetadata.image.name | string | `"extension-init"` | Docker image name for the namespace-metadata instance |
 | namespaceMetadata.image.pullPolicy | string | `"IfNotPresent"` | Pull policy for the namespace-metadata instance |

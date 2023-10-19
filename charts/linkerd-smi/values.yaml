@@ -4,6 +4,10 @@ clusterDomain: cluster.local
 # -- Namespace of the Linkerd core control-plane install
 linkerdNamespace: linkerd
 
+# -- imagePullSecrets to apply to all ServiceAccounts for pulling images from
+# private registries
+imagePullSecrets: []
+
 # SMI Adaptor configuration
 adaptor:
   image:
