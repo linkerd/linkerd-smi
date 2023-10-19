@@ -1,5 +1,10 @@
 # Changes
 
+## v0.2.6
+
+This release adds `imagePullSecrets` support, for pulling images from private
+docker registries.
+
 ## v0.2.5
 
 This release just bumps the Helm chart version, which we had missed in the
