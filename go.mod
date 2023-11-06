@@ -8,7 +8,7 @@ require (
 	github.com/servicemeshinterface/smi-sdk-go v0.5.0
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
 	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/cobra v1.7.0
+	github.com/spf13/cobra v1.8.0
 	helm.sh/helm/v3 v3.13.1
 	k8s.io/api v0.28.3
 	k8s.io/apimachinery v0.28.3
