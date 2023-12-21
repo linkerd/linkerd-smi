@@ -3,7 +3,7 @@ module github.com/linkerd/linkerd-smi
 go 1.19
 
 require (
-	github.com/fatih/color v1.15.0
+	github.com/fatih/color v1.16.0
 	github.com/linkerd/linkerd2 v0.0.0-20230502184307-e1ba0e039074
 	github.com/servicemeshinterface/smi-sdk-go v0.5.0
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
@@ -69,7 +69,7 @@ require (
 	github.com/linkerd/linkerd2-proxy-api v0.9.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.18 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
@@ -106,7 +106,7 @@ require (
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/oauth2 v0.8.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/sys v0.14.0 // indirect
 	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
