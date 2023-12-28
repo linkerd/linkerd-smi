@@ -20,22 +20,19 @@ Before installing the Linkerd SMI extension, The core control-plane has to
 be installed first by following the [Linkerd Install
 Guide](https://linkerd.io/2/tasks/install/).
 
-## Adding Linkerd's Helm repository
+## Adding Linkerd-smi's Helm repository
 
 ```bash
-# To add the repo for Linkerd2 stable releases:
-helm repo add linkerd https://helm.linkerd.io/stable
-# To add the repo for Linkerd2 edge releases:
-helm repo add linkerd-edge https://helm.linkerd.io/edge
+# To add the repo for Linkerd2 smi charts:
+helm repo add linkerd-smi https://linkerd.github.io/linkerd-smi
 ```
 
-The following instructions use the `linkerd` repo. For installing an edge
-release, just replace with `linkerd-edge`.
+The following instructions use the `linkerd-smi` repo.
 
 ## Installing the SMI Extension Chart
 
 ```bash
-helm install linkerd/linkerd-smi
+helm install linkerd-smi/linkerd-smi
 ```
 
 ## Get involved
