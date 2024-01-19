@@ -62,7 +62,7 @@ jobs:
         bin/helm-build package
         cp -r ./target/helm $ARCHIVES
     - name: Upload artifact
-      uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32
+      uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6
       with:
         name: build-archives
         path: /home/runner/archives
