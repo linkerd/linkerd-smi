@@ -28,7 +28,7 @@ jobs:
         echo "DOCKER_REGISTRY=ghcr.io/linkerd" >> $GITHUB_ENV
         echo "DOCKER_BUILDKIT_CACHE=${{ runner.temp }}/.buildx-cache" >> $GITHUB_ENV
     - name: Cache docker layers
-      uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84
+      uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
       with:
         path: ${{ env.DOCKER_BUILDKIT_CACHE }}
         key: ${{ runner.os }}-buildx-smi-${{ env.TAG }}
@@ -81,7 +81,7 @@ jobs:
       run: |
         echo "TAG=$(CI_FORCE_CLEAN=1 bin/root-tag)" >> $GITHUB_ENV
     - name: Try to load cached Go modules
-      uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84
+      uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
