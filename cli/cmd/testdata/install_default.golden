@@ -30,7 +30,6 @@ spec:
     spec:
       containers:
       - args:
-        - smi-adaptor
         - -cluster-domain=cluster.local
         image: cr.l5d.io/linkerd/smi-adaptor:dev-undefined
         imagePullPolicy: IfNotPresent
@@ -46,6 +45,8 @@ spec:
             cpu: 100m
             memory: 20Mi
       serviceAccountName: smi-adaptor
+      securityContext:
+        runAsUser: 65534
 ---
 ###
 ### SMI Adaptor Service
