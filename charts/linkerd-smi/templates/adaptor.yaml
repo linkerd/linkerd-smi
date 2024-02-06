@@ -22,11 +22,11 @@ spec:
         component: smi-adaptor
     spec:
       {{- with .Values.adaptor.tolerations}}
-      tolerations: 
+      tolerations:
 {{toYaml . | indent 8}}
       {{- end }}
       {{- with .Values.adaptor.nodeSelector }}
-      nodeSelector: 
+      nodeSelector:
 {{toYaml . | indent 8}}
       {{- end }}
       {{- with .Values.adaptor.affinity }}
@@ -43,4 +43,15 @@ spec:
         ports:
         - containerPort: 9995
           name: admin-http
+        {{- with .Values.adaptor.resources.requests }}
+        resources:
+          requests:
+            cpu: {{ .cpu }}
+            memory: {{ .memory }}
+        {{- end }}
+        {{- with .Values.adaptor.resources.limits }}
+          limits:
+            cpu: {{ .cpu }}
+            memory: {{ .memory }}
+        {{- end }}
       serviceAccountName: smi-adaptor

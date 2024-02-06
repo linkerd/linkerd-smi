@@ -67,6 +67,7 @@ Kubernetes: `>=1.16.0-0`
 | adaptor.image.registry | string | `"cr.l5d.io/linkerd"` | Docker registry for the adaptor instance |
 | adaptor.image.tag | string | `"linkerdSMIVersionValue"` | Docker image tag for the adaptor instance |
 | adaptor.nodeSelector | object | `{}` | Node selector for the adaptor instance |
+| adaptor.resources | object | `{"limits":{"cpu":"100m","memory":"20Mi"},"requests":{"cpu":"100m","memory":"20Mi"}}` | SMI adaptor resource requests & limits |
 | adaptor.tolerations | list | `[]` | Tolerations for the adaptor instance |
 | clusterDomain | string | `"cluster.local"` | Kubernetes DNS Domain name to use |
 | imagePullSecrets | list | `[]` | imagePullSecrets to apply to all ServiceAccounts for pulling images from private registries |
