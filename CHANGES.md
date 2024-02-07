@@ -1,5 +1,11 @@
 # Changes
 
+## v0.2.7
+
+- Allowed setting resource requirements for the smi-adaptor
+- Added ability to set `runAsUser` entry for the smi-adaptor
+- Fixed `clusterDomain` config (it was being ignored)
+
 ## v0.2.6
 
 This release adds `imagePullSecrets` support, for pulling images from private
