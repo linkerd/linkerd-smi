@@ -53,6 +53,17 @@ spec:
             cpu: {{ .cpu }}
             memory: {{ .memory }}
         {{- end }}
-      serviceAccountName: smi-adaptor
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: {{.Values.adaptor.runAsUser}}
+          seccompProfile:
+            type: RuntimeDefault
       securityContext:
-        runAsUser: {{.Values.adaptor.runAsUser}}
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: smi-adaptor

@@ -44,9 +44,20 @@ spec:
           limits:
             cpu: 100m
             memory: 20Mi
-      serviceAccountName: smi-adaptor
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65534
+          seccompProfile:
+            type: RuntimeDefault
       securityContext:
-        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: smi-adaptor
 ---
 ###
 ### SMI Adaptor Service
