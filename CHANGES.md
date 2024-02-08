@@ -4,6 +4,7 @@
 
 - Allowed setting resource requirements for the smi-adaptor
 - Added ability to set `runAsUser` entry for the smi-adaptor
+- Fixed the smi-adaptor to run in Pod Security Admission's `restricted` level
 - Fixed `clusterDomain` config (it was being ignored)
 
 ## v0.2.6

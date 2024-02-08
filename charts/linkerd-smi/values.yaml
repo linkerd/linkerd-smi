@@ -49,3 +49,6 @@ namespaceMetadata:
     tag: v0.1.0
     # -- Pull policy for the namespace-metadata instance
     pullPolicy: IfNotPresent
+
+  # -- User ID for the namespace-metadata instance
+  runAsUser: 65534
