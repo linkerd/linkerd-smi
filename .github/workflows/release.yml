@@ -93,7 +93,7 @@ jobs:
         name: build-archives
         path: build-archives
     - name: Create k8s Kind Cluster
-      uses: helm/kind-action@dda0770415bac9fc20092cacbc54aa298604d140
+      uses: helm/kind-action@99576bfa6ddf9a8e612d83b513da5a75875caced
       with:
         cluster_name: kind
     - name: Load the SMI extension CLI and Images
